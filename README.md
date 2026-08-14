@@ -118,3 +118,31 @@ Remove-Item Env:DATABASE_URL  # очистить перед docker compose
 
 Prisma Client в контейнере `api` генерируется во время сборки образа
 (`prisma generate` в `api/Dockerfile`).
+
+## Административная авторизация (E03)
+
+Внутренние маршруты NestJS (внешние — с префиксом `/api` через Nginx):
+
+- `POST /admin/auth/login` — логин по `login`+`password`, выдаёт HttpOnly cookie `wkw_admin_session`;
+- `GET  /admin/auth/session` — текущий администратор (нужна валидная сессия);
+- `POST /admin/auth/logout` — завершить текущую сессию;
+- `POST /admin/auth/logout-all` — завершить все сессии текущего администратора.
+
+Пароли хранятся как Argon2-хэш, session token хранится в БД только как SHA-256 hash.
+
+Создание первого dev-администратора (значения берутся из окружения, секреты не
+коммитятся). Windows PowerShell из папки `api/`:
+
+```powershell
+$env:DATABASE_URL = "postgresql://wkw:wkw_dev_password@localhost:5432/wkw?schema=public"
+$env:ADMIN_BOOTSTRAP_LOGIN = "admin"
+$env:ADMIN_BOOTSTRAP_PASSWORD = "<dev-password>"
+$env:ADMIN_BOOTSTRAP_EMAIL = "admin@example.com"
+
+npm run admin:create        # из папки api/  (или: npm run admin:create -w api из корня)
+
+Remove-Item Env:DATABASE_URL, Env:ADMIN_BOOTSTRAP_PASSWORD
+```
+
+`ADMIN_SESSION_TTL_HOURS` задаёт срок жизни сессии (по умолчанию 24 часа).
+В production cookie выставляется с `Secure=true`; в локальном dev через http — `Secure=false`.
