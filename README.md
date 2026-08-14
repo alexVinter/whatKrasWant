@@ -86,3 +86,35 @@ npm run typecheck   # проверка типов web + api
 npm run lint        # ESLint web + api
 npm run build       # production-сборка web + api
 ```
+
+## База данных (Prisma)
+
+Схема находится в `api/prisma/schema.prisma`, seed — в `api/prisma/seed.ts`,
+миграции — в `api/prisma/migrations/`. ORM — Prisma 6.
+
+PostgreSQL поднимается через Docker Compose (сервис `postgres`, порт 5432
+проброшен на хост). Prisma CLI удобнее запускать с хоста, указывая
+`DATABASE_URL` на `localhost` (в отличие от значения в `.env`, где host —
+это имя сервиса `postgres`, доступное только внутри docker-сети).
+
+Windows PowerShell (из папки `api/`):
+
+```powershell
+# URL для запуска Prisma CLI с хоста против compose-Postgres
+$env:DATABASE_URL = "postgresql://wkw:wkw_dev_password@localhost:5432/wkw?schema=public"
+
+npm run prisma:generate     # сгенерировать Prisma Client
+npm run prisma:migrate -- --name init_release1_core   # создать и применить dev-миграцию
+npm run prisma:deploy       # применить уже существующие миграции (prod-стиль)
+npm run prisma:seed         # заполнить категории/районы/feature flags (идемпотентно)
+npm run prisma:status       # статус миграций
+
+Remove-Item Env:DATABASE_URL  # очистить перед docker compose
+```
+
+Важно: не оставляйте `DATABASE_URL` со значением `localhost` в переменных
+окружения оболочки при запуске `docker compose` — иначе значение подставится
+в контейнер `api`. Для контейнеров host всегда `postgres` (берётся из `.env`).
+
+Prisma Client в контейнере `api` генерируется во время сборки образа
+(`prisma generate` в `api/Dockerfile`).

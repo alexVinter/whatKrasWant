@@ -1,0 +1,174 @@
+// «Чего хочет Красноярск?» — схема БД (Релиз 1 core).
+// Только сущности Релиза 1. Модели Релиза 2 (User, Vote, ConsentAcceptance,
+// News, LegalDocument) добавляются на соответствующих этапах.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum AdminStatus {
+  ACTIVE
+  DISABLED
+}
+
+enum IdeaSourceType {
+  EXPERT
+  RESIDENT
+}
+
+enum IdeaStatus {
+  DRAFT
+  MODERATION
+  PUBLISHED
+  ARCHIVED
+}
+
+enum TerritoryType {
+  DISTRICTS
+  CITYWIDE
+}
+
+model AdminUser {
+  id           String      @id @default(uuid())
+  login        String      @unique
+  email        String?     @unique
+  passwordHash String      @map("password_hash")
+  status       AdminStatus @default(ACTIVE)
+  lastLoginAt  DateTime?   @map("last_login_at")
+  createdAt    DateTime    @default(now()) @map("created_at")
+  updatedAt    DateTime    @updatedAt @map("updated_at")
+
+  ideaRevisions IdeaRevision[]
+  auditLogs     AdminAuditLog[]
+
+  @@map("admin_users")
+}
+
+model Category {
+  id          String   @id @default(uuid())
+  name        String
+  slug        String   @unique
+  description String?
+  icon        String?
+  color       String?
+  sortOrder   Int      @map("sort_order")
+  isActive    Boolean  @default(true) @map("is_active")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  ideas Idea[]
+
+  @@map("categories")
+}
+
+model District {
+  id        String   @id @default(uuid())
+  name      String   @unique
+  geometry  Json?
+  sortOrder Int      @map("sort_order")
+  isActive  Boolean  @default(true) @map("is_active")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  ideaDistricts IdeaDistrict[]
+
+  @@map("districts")
+}
+
+model Idea {
+  id            String         @id @default(uuid())
+  publicNumber  Int            @unique @default(autoincrement()) @map("public_number")
+  slug          String         @unique
+  sourceType    IdeaSourceType @map("source_type")
+  expertName    String?        @map("expert_name")
+  expertOrg     String?        @map("expert_org")
+  title         String
+  description   String
+  categoryId    String?        @map("category_id")
+  territoryType TerritoryType  @map("territory_type")
+  address       String?
+  latitude      Float?
+  longitude     Float?
+  status        IdeaStatus     @default(DRAFT)
+  isTop20       Boolean        @default(false) @map("is_top20")
+  submittedAt   DateTime?      @map("submitted_at")
+  publishedAt   DateTime?      @map("published_at")
+  createdAt     DateTime       @default(now()) @map("created_at")
+  updatedAt     DateTime       @updatedAt @map("updated_at")
+
+  category  Category?      @relation(fields: [categoryId], references: [id])
+  districts IdeaDistrict[]
+  image     IdeaImage?
+  revisions IdeaRevision[]
+
+  @@map("ideas")
+}
+
+model IdeaDistrict {
+  ideaId     String @map("idea_id")
+  districtId String @map("district_id")
+
+  idea     Idea     @relation(fields: [ideaId], references: [id], onDelete: Cascade)
+  district District @relation(fields: [districtId], references: [id], onDelete: Cascade)
+
+  @@id([ideaId, districtId])
+  @@map("idea_districts")
+}
+
+model IdeaImage {
+  id           String   @id @default(uuid())
+  ideaId       String   @unique @map("idea_id")
+  originalKey  String   @map("original_key")
+  optimizedKey String   @map("optimized_key")
+  thumbnailKey String   @map("thumbnail_key")
+  mimeType     String   @map("mime_type")
+  size         Int
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  idea Idea @relation(fields: [ideaId], references: [id], onDelete: Cascade)
+
+  @@map("idea_images")
+}
+
+model IdeaRevision {
+  id           String   @id @default(uuid())
+  ideaId       String   @map("idea_id")
+  actorAdminId String?  @map("actor_admin_id")
+  snapshotJson Json     @map("snapshot_json")
+  reason       String?
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  idea  Idea       @relation(fields: [ideaId], references: [id], onDelete: Cascade)
+  actor AdminUser? @relation(fields: [actorAdminId], references: [id])
+
+  @@map("idea_revisions")
+}
+
+model SystemSetting {
+  key       String   @id
+  value     Json
+  updatedBy String?  @map("updated_by")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("system_settings")
+}
+
+model AdminAuditLog {
+  id         String   @id @default(uuid())
+  actorId    String?  @map("actor_id")
+  action     String
+  entityType String   @map("entity_type")
+  entityId   String?  @map("entity_id")
+  beforeJson Json?    @map("before_json")
+  afterJson  Json?    @map("after_json")
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  actor AdminUser? @relation(fields: [actorId], references: [id])
+
+  @@map("admin_audit_logs")
+}
