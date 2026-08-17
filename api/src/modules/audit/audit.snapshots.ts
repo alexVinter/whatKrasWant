@@ -1,6 +1,10 @@
 import type { Category, District, IdeaStatus, TerritoryType } from '@prisma/client';
 import { Prisma } from '@prisma/client';
-import { AUDIT_ENTITIES, type AuditEntityType } from './audit.constants';
+import {
+  AUDIT_ENTITIES,
+  SETTINGS_OBJECT_LABEL,
+  type AuditEntityType,
+} from './audit.constants';
 
 export interface IdeaAuditFields {
   id: string;
@@ -81,6 +85,9 @@ export function objectLabelFromSnapshot(
     entityType === AUDIT_ENTITIES.DISTRICT
   ) {
     return typeof record.name === 'string' ? record.name : '';
+  }
+  if (entityType === AUDIT_ENTITIES.SETTINGS) {
+    return SETTINGS_OBJECT_LABEL;
   }
   return '';
 }

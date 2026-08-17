@@ -12,6 +12,7 @@ export const AUDIT_ACTION_LABELS: Record<string, string> = {
   CATEGORY_UPDATED: 'Изменена категория',
   DISTRICT_CREATED: 'Создан район',
   DISTRICT_UPDATED: 'Изменён район',
+  SETTINGS_UPDATED: 'Изменены настройки',
 };
 
 export function auditActionLabel(action: string): string {

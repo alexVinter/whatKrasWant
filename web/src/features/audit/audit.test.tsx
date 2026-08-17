@@ -156,4 +156,25 @@ describe('admin audit log', () => {
     expect(within(panel).getByText('Изменена инициатива')).toBeInTheDocument();
     expect(within(panel).getByText('TEST E08 IDEA')).toBeInTheDocument();
   });
+
+  it('shows a human label for SETTINGS_UPDATED', async () => {
+    installAuditMock({
+      items: [
+        {
+          id: 'log-s',
+          createdAt: '2026-08-17T12:00:00.000Z',
+          action: 'SETTINGS_UPDATED',
+          entityType: 'SETTINGS',
+          entityId: 'publicity',
+          actor: { id: 'a-1', login: 'admin' },
+          objectLabel: 'Настройки публичности',
+        },
+      ],
+    });
+    renderApp('/admin/audit');
+
+    expect(await screen.findByText('Изменены настройки')).toBeInTheDocument();
+    expect(screen.getByText('Настройки публичности')).toBeInTheDocument();
+    expect(screen.queryByText('SETTINGS_UPDATED')).not.toBeInTheDocument();
+  });
 });

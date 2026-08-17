@@ -247,6 +247,35 @@ describe('AuditController (e2e)', () => {
     expect(created.objectLabel).toBe('Старое имя категории');
   });
 
+  it('returns a human object label for SETTINGS_UPDATED', async () => {
+    seed({
+      id: 'settings-1',
+      action: 'SETTINGS_UPDATED',
+      entityType: 'SETTINGS',
+      entityId: 'publicity',
+      beforeJson: {
+        PUBLIC_CATALOG: false,
+        PUBLIC_SUBMISSION: false,
+        VOTING: false,
+        RESULTS: false,
+      },
+      afterJson: {
+        PUBLIC_CATALOG: true,
+        PUBLIC_SUBMISSION: false,
+        VOTING: false,
+        RESULTS: false,
+      },
+    });
+
+    const res = await request(server())
+      .get('/admin/audit')
+      .set('Cookie', AUTH_COOKIE)
+      .expect(200);
+
+    expect(res.body.items[0].objectLabel).toBe('Настройки публичности');
+    expect(res.body.items[0].action).toBe('SETTINGS_UPDATED');
+  });
+
   it('paginates with a max pageSize of 100', async () => {
     seed({
       id: 'a',

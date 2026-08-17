@@ -29,7 +29,7 @@ const NAV_ITEMS: NavItem[] = [
   { label: 'Категории и районы', to: '/admin/taxonomy' },
   { label: 'Новости' },
   { label: 'Статистика и выгрузка' },
-  { label: 'Настройки' },
+  { label: 'Настройки', to: '/admin/settings' },
   { label: 'Журнал действий', to: '/admin/audit' },
 ];
 

@@ -12,6 +12,7 @@ export const AUDIT_ACTIONS = {
   CATEGORY_UPDATED: 'CATEGORY_UPDATED',
   DISTRICT_CREATED: 'DISTRICT_CREATED',
   DISTRICT_UPDATED: 'DISTRICT_UPDATED',
+  SETTINGS_UPDATED: 'SETTINGS_UPDATED',
 } as const;
 
 export type AuditAction = (typeof AUDIT_ACTIONS)[keyof typeof AUDIT_ACTIONS];
@@ -20,7 +21,11 @@ export const AUDIT_ENTITIES = {
   IDEA: 'IDEA',
   CATEGORY: 'CATEGORY',
   DISTRICT: 'DISTRICT',
+  SETTINGS: 'SETTINGS',
 } as const;
+
+export const SETTINGS_ENTITY_ID = 'publicity';
+export const SETTINGS_OBJECT_LABEL = 'Настройки публичности';
 
 export type AuditEntityType =
   (typeof AUDIT_ENTITIES)[keyof typeof AUDIT_ENTITIES];
