@@ -10,6 +10,7 @@ import { AdminInitiativeCreatePage } from '../../pages/admin/AdminInitiativeCrea
 import { AdminInitiativeEditPage } from '../../pages/admin/AdminInitiativeEditPage/AdminInitiativeEditPage';
 import { AdminAuditPage } from '../../pages/admin/AdminAuditPage/AdminAuditPage';
 import { AdminSettingsPage } from '../../pages/admin/AdminSettingsPage/AdminSettingsPage';
+import { AdminStatisticsPage } from '../../pages/admin/AdminStatisticsPage/AdminStatisticsPage';
 
 export function AppRouter() {
   return (
@@ -25,6 +26,7 @@ export function AppRouter() {
           <Route path="initiatives/:id" element={<AdminInitiativeEditPage />} />
           <Route path="audit" element={<AdminAuditPage />} />
           <Route path="settings" element={<AdminSettingsPage />} />
+          <Route path="statistics" element={<AdminStatisticsPage />} />
         </Route>
       </Route>
     </Routes>

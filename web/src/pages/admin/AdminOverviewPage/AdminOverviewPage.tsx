@@ -1,4 +1,4 @@
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useIdeasSummary } from '../../../features/ideas/queries';
 import { useAuditLog } from '../../../features/audit/queries';
 import {
@@ -15,13 +15,19 @@ const STAT_CARDS: { label: string; key: keyof IdeaSummary }[] = [
   { label: 'Архив', key: 'archived' },
 ];
 
-// Navigation shortcuts from the approved layout. Only "Инициативы" is wired in
-// E06; the remaining sections are placeholders until their stages.
-const QUICK_ACTIONS = [
+const QUICK_ACTIONS: { title: string; subtitle: string; to?: string }[] = [
   { title: 'Инициативы', subtitle: 'Открыть список и модерацию' },
   { title: 'Новости', subtitle: 'Добавление и редактирование' },
-  { title: 'Статистика и выгрузка', subtitle: 'Сводные данные для администратора' },
-  { title: 'Настройки', subtitle: 'Публичность, подача и голосование' },
+  {
+    title: 'Статистика и выгрузка',
+    subtitle: 'Сводные данные для администратора',
+    to: '/admin/statistics',
+  },
+  {
+    title: 'Настройки',
+    subtitle: 'Публичность, подача и голосование',
+    to: '/admin/settings',
+  },
 ];
 
 export function AdminOverviewPage() {
@@ -64,12 +70,23 @@ export function AdminOverviewPage() {
         <section className={styles.panel}>
           <h2 className={styles.panelTitle}>Быстрые действия</h2>
           <div className={styles.actions}>
-            {QUICK_ACTIONS.map((action) => (
-              <div key={action.title} className={styles.actionCard}>
-                <span className={styles.actionTitle}>{action.title}</span>
-                <span className={styles.actionSubtitle}>{action.subtitle}</span>
-              </div>
-            ))}
+            {QUICK_ACTIONS.map((action) => {
+              const content = (
+                <>
+                  <span className={styles.actionTitle}>{action.title}</span>
+                  <span className={styles.actionSubtitle}>{action.subtitle}</span>
+                </>
+              );
+              return action.to ? (
+                <Link key={action.title} to={action.to} className={styles.actionCard}>
+                  {content}
+                </Link>
+              ) : (
+                <div key={action.title} className={styles.actionCard}>
+                  {content}
+                </div>
+              );
+            })}
           </div>
         </section>
 

@@ -9,6 +9,7 @@ import { HealthModule } from './modules/health/health.module';
 import { IdeasModule } from './modules/ideas/ideas.module';
 import { PublicConfigModule } from './modules/public-config/public-config.module';
 import { SettingsModule } from './modules/settings/settings.module';
+import { StatisticsModule } from './modules/statistics/statistics.module';
 import { StorageModule } from './storage/storage.module';
 
 @Module({
@@ -24,6 +25,7 @@ import { StorageModule } from './storage/storage.module';
     IdeasModule,
     PublicConfigModule,
     SettingsModule,
+    StatisticsModule,
   ],
 })
 export class AppModule {}
