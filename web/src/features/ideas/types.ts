@@ -22,6 +22,12 @@ export interface IdeaListResponse {
   pageSize: number;
 }
 
+export interface IdeaImageInfo {
+  id: string;
+  url: string;
+  thumbnailUrl: string;
+}
+
 export interface IdeaDetail {
   id: string;
   publicNumber: number;
@@ -45,6 +51,7 @@ export interface IdeaDetail {
   publishedAt: string | null;
   createdAt: string;
   updatedAt: string;
+  image: IdeaImageInfo | null;
 }
 
 export interface IdeaRevisionItem {

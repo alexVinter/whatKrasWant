@@ -18,8 +18,9 @@ function jsonResponse(body: unknown, status: number): Response {
   });
 }
 
-function installMock(options?: { loggedIn?: boolean }) {
+function installMock(options?: { loggedIn?: boolean; failImage?: boolean }) {
   const loggedIn = options?.loggedIn ?? true;
+  const failImage = options?.failImage ?? false;
   const admin = { id: 'a-1', login: 'admin', email: 'admin@example.com' };
   const now = new Date().toISOString();
   const calls: Call[] = [];
@@ -54,6 +55,7 @@ function installMock(options?: { loggedIn?: boolean }) {
     publishedAt: string | null;
     createdAt: string;
     updatedAt: string;
+    image: { id: string; url: string; thumbnailUrl: string } | null;
     revisions: { id: string; reason: string; createdAt: string; actor: any; snapshot: any }[];
   }
 
@@ -81,6 +83,11 @@ function installMock(options?: { loggedIn?: boolean }) {
       publishedAt: null,
       createdAt: now,
       updatedAt: now,
+      image: {
+        id: 'img-1',
+        url: '/api/admin/ideas/i1/image/optimized?v=img-1',
+        thumbnailUrl: '/api/admin/ideas/i1/image/thumbnail?v=img-1',
+      },
       revisions: [
         { id: 'r1', reason: 'Инициатива создана', createdAt: now, actor: { id: 'a-1', login: 'admin' }, snapshot: {} },
       ],
@@ -136,7 +143,12 @@ function installMock(options?: { loggedIn?: boolean }) {
       const url = new URL(rawUrl, 'http://localhost');
       const path = url.pathname;
       const method = init?.method ?? 'GET';
-      const body = typeof init?.body === 'string' ? JSON.parse(init.body) : {};
+      let body: any = {};
+      if (typeof FormData !== 'undefined' && init?.body instanceof FormData) {
+        body = { form: true, hasImage: init.body.has('image') };
+      } else if (typeof init?.body === 'string' && init.body.length > 0) {
+        body = JSON.parse(init.body);
+      }
       calls.push({ url: rawUrl, method, body });
 
       if (path.endsWith('/api/admin/auth/session')) {
@@ -194,6 +206,35 @@ function installMock(options?: { loggedIn?: boolean }) {
         return jsonResponse(detail(idea), 200);
       }
 
+      const imageMatch = path.match(/\/api\/admin\/ideas\/([^/]+)\/image$/);
+      if (imageMatch && (method === 'POST' || method === 'DELETE')) {
+        const idea = ideas.find((i) => i.id === imageMatch[1]);
+        if (!idea) return jsonResponse(null, 404);
+        if (failImage && method === 'POST') {
+          return jsonResponse(null, 400);
+        }
+        if (method === 'POST') {
+          const replaced = idea.image !== null;
+          idea.image = {
+            id: `img-${idea.id}`,
+            url: `/api/admin/ideas/${idea.id}/image/optimized?v=new`,
+            thumbnailUrl: `/api/admin/ideas/${idea.id}/image/thumbnail?v=new`,
+          };
+          addRevision(idea, replaced ? 'Изображение заменено' : 'Добавлено изображение');
+        } else {
+          idea.image = null;
+          addRevision(idea, 'Изображение удалено');
+        }
+        return jsonResponse(detail(idea), 200);
+      }
+
+      if (path.match(/\/api\/admin\/ideas\/[^/]+\/image\/(optimized|thumbnail)$/)) {
+        return new Response(new Uint8Array([0xff, 0xd8, 0xff]), {
+          status: 200,
+          headers: { 'Content-Type': 'image/jpeg' },
+        });
+      }
+
       const idMatch = path.match(/\/api\/admin\/ideas\/([^/]+)$/);
       if (idMatch && idMatch[1] !== 'new') {
         const idea = ideas.find((i) => i.id === idMatch[1]);
@@ -236,6 +277,7 @@ function installMock(options?: { loggedIn?: boolean }) {
             publishedAt: body.action === 'PUBLISH' ? new Date().toISOString() : null,
             createdAt: new Date().toISOString(),
             updatedAt: new Date().toISOString(),
+            image: null,
             revisions: [
               { id: 'r1', reason: 'Инициатива создана', createdAt: new Date().toISOString(), actor: { id: 'a-1', login: 'admin' }, snapshot: {} },
             ],
@@ -266,6 +308,21 @@ function installMock(options?: { loggedIn?: boolean }) {
   );
 
   vi.stubGlobal('fetch', mock);
+  if (typeof URL.createObjectURL !== 'function') {
+    Object.defineProperty(URL, 'createObjectURL', {
+      configurable: true,
+      writable: true,
+      value: () => 'blob:preview',
+    });
+    Object.defineProperty(URL, 'revokeObjectURL', {
+      configurable: true,
+      writable: true,
+      value: () => undefined,
+    });
+  } else {
+    vi.spyOn(URL, 'createObjectURL').mockReturnValue('blob:preview');
+    vi.spyOn(URL, 'revokeObjectURL').mockImplementation(() => undefined);
+  }
   return { calls };
 }
 
@@ -475,6 +532,156 @@ describe('admin initiatives', () => {
     });
     expect(await screen.findByText('Черновик')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Опубликовать' })).toBeInTheDocument();
+  });
+
+  it('accepts a JPG on the create form and shows a preview', async () => {
+    installMock();
+    renderApp('/admin/initiatives/new');
+    const input = (await screen.findByLabelText('Изображение инициативы')) as HTMLInputElement;
+    const file = new File([new Uint8Array([0xff, 0xd8, 0xff])], 'photo.jpg', {
+      type: 'image/jpeg',
+    });
+    await userEvent.upload(input, file);
+    expect(await screen.findByAltText('Изображение инициативы')).toBeInTheDocument();
+    expect(screen.getByText('photo.jpg')).toBeInTheDocument();
+  });
+
+  it('shows an error for a non JPG/PNG file', async () => {
+    installMock();
+    renderApp('/admin/initiatives/new');
+    const input = (await screen.findByLabelText('Изображение инициативы')) as HTMLInputElement;
+    const file = new File([new Uint8Array([0x47, 0x49, 0x46])], 'a.gif', {
+      type: 'image/gif',
+    });
+    await userEvent.upload(input, file, { applyAccept: false });
+    expect(await screen.findByRole('alert')).toHaveTextContent(
+      'Допустимы изображения JPG и PNG.',
+    );
+  });
+
+  it('shows an error for a file larger than 10 MB', async () => {
+    installMock();
+    renderApp('/admin/initiatives/new');
+    const input = (await screen.findByLabelText('Изображение инициативы')) as HTMLInputElement;
+    const file = new File([new Uint8Array(10 * 1024 * 1024 + 1)], 'big.jpg', {
+      type: 'image/jpeg',
+    });
+    await userEvent.upload(input, file);
+    expect(await screen.findByRole('alert')).toHaveTextContent(
+      'Максимальный размер файла — 10 МБ.',
+    );
+  });
+
+  it('removes a selected file before submit', async () => {
+    installMock();
+    renderApp('/admin/initiatives/new');
+    const input = (await screen.findByLabelText('Изображение инициативы')) as HTMLInputElement;
+    await userEvent.upload(
+      input,
+      new File([new Uint8Array([0xff, 0xd8, 0xff])], 'photo.jpg', {
+        type: 'image/jpeg',
+      }),
+    );
+    expect(await screen.findByAltText('Изображение инициативы')).toBeInTheDocument();
+    await userEvent.click(screen.getByRole('button', { name: 'Убрать' }));
+    expect(screen.queryByAltText('Изображение инициативы')).not.toBeInTheDocument();
+    expect(screen.getByText('Выберите JPG или PNG')).toBeInTheDocument();
+  });
+
+  it('creates the idea first and then uploads the image', async () => {
+    const { calls } = installMock();
+    renderApp('/admin/initiatives/new');
+    await screen.findByLabelText('Название');
+    await userEvent.type(screen.getByLabelText('Название'), 'TEST E07 IMAGE draft');
+    await userEvent.type(screen.getByLabelText('Описание'), LONG_DESC);
+    const input = screen.getByLabelText('Изображение инициативы') as HTMLInputElement;
+    await userEvent.upload(
+      input,
+      new File([new Uint8Array([0xff, 0xd8, 0xff])], 'photo.jpg', {
+        type: 'image/jpeg',
+      }),
+    );
+    await userEvent.click(screen.getByRole('button', { name: 'Сохранить черновик' }));
+
+    await waitFor(() => {
+      const create = calls.find(
+        (c) => c.method === 'POST' && c.url.endsWith('/api/admin/ideas'),
+      );
+      const upload = calls.find(
+        (c) => c.method === 'POST' && String(c.url).includes('/image'),
+      );
+      expect(create).toBeTruthy();
+      expect(upload).toBeTruthy();
+      expect(calls.indexOf(create!)).toBeLessThan(calls.indexOf(upload!));
+    });
+  });
+
+  it('keeps the created idea if image upload fails', async () => {
+    installMock({ failImage: true });
+    renderApp('/admin/initiatives/new');
+    await screen.findByLabelText('Название');
+    await userEvent.type(screen.getByLabelText('Название'), 'TEST E07 IMAGE fail');
+    await userEvent.type(screen.getByLabelText('Описание'), LONG_DESC);
+    await userEvent.upload(
+      screen.getByLabelText('Изображение инициативы') as HTMLInputElement,
+      new File([new Uint8Array([0xff, 0xd8, 0xff])], 'photo.jpg', {
+        type: 'image/jpeg',
+      }),
+    );
+    await userEvent.click(screen.getByRole('button', { name: 'Сохранить черновик' }));
+
+    expect(
+      await screen.findByText(
+        'Инициатива сохранена, но изображение загрузить не удалось.',
+      ),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('heading', { name: 'Карточка инициативы' }),
+    ).toBeInTheDocument();
+  });
+
+  it('shows an existing image on the edit page', async () => {
+    installMock();
+    renderApp('/admin/initiatives/i1');
+    expect(await screen.findByAltText('Изображение инициативы')).toBeInTheDocument();
+  });
+
+  it('replaces an image via POST /image', async () => {
+    const { calls } = installMock();
+    renderApp('/admin/initiatives/i1');
+    const input = (await screen.findByLabelText('Изображение инициативы', {
+      selector: 'input',
+    })) as HTMLInputElement;
+    await userEvent.upload(
+      input,
+      new File([new Uint8Array([0xff, 0xd8, 0xff])], 'new.jpg', {
+        type: 'image/jpeg',
+      }),
+    );
+    await waitFor(() => {
+      expect(
+        calls.some(
+          (c) =>
+            c.method === 'POST' && c.url.endsWith('/api/admin/ideas/i1/image'),
+        ),
+      ).toBe(true);
+    });
+  });
+
+  it('deletes an image via DELETE /image and updates the UI', async () => {
+    const { calls } = installMock();
+    renderApp('/admin/initiatives/i1');
+    await screen.findByAltText('Изображение инициативы');
+    await userEvent.click(screen.getByRole('button', { name: 'Удалить' }));
+    await waitFor(() => {
+      expect(
+        calls.some(
+          (c) =>
+            c.method === 'DELETE' && c.url.endsWith('/api/admin/ideas/i1/image'),
+        ),
+      ).toBe(true);
+    });
+    expect(screen.getByText('Выберите JPG или PNG')).toBeInTheDocument();
   });
 
   it('shows real summary counts on the overview', async () => {

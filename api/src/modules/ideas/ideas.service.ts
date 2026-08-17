@@ -100,6 +100,7 @@ export class IdeasService {
         districts: {
           include: { district: { select: { id: true, name: true } } },
         },
+        image: true,
       },
     });
     if (!idea) {
@@ -129,6 +130,26 @@ export class IdeasService {
       publishedAt: idea.publishedAt,
       createdAt: idea.createdAt,
       updatedAt: idea.updatedAt,
+      image: this.buildImage(id, idea.image),
+    };
+  }
+
+  /**
+   * Safe, frontend-facing image descriptor. Storage keys and S3 credentials
+   * are never exposed; the frontend loads bytes through the guarded media
+   * endpoint. The `v` cache-buster changes whenever the image is replaced.
+   */
+  private buildImage(
+    ideaId: string,
+    image: { id: string } | null,
+  ): { id: string; url: string; thumbnailUrl: string } | null {
+    if (!image) {
+      return null;
+    }
+    return {
+      id: image.id,
+      url: `/api/admin/ideas/${ideaId}/image/optimized?v=${image.id}`,
+      thumbnailUrl: `/api/admin/ideas/${ideaId}/image/thumbnail?v=${image.id}`,
     };
   }
 
@@ -492,6 +513,14 @@ export class IdeasService {
   }
 
   // ---------- Helpers ----------
+
+  /** Public revision-snapshot builder reused by the image service. */
+  revisionSnapshot(
+    idea: Parameters<IdeasService['snapshot']>[0],
+    districtIds: string[],
+  ): Prisma.InputJsonValue {
+    return this.snapshot(idea, districtIds);
+  }
 
   private assertLengths(title: string, description: string) {
     if (title.length < 10 || title.length > 150) {

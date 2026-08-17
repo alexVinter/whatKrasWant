@@ -6,6 +6,8 @@ import { Test } from '@nestjs/testing';
 import cookieParser from 'cookie-parser';
 import request from 'supertest';
 import { createHash, randomUUID } from 'node:crypto';
+import { Readable } from 'node:stream';
+import sharp from 'sharp';
 import { AdminStatus } from '@prisma/client';
 import type {
   AdminSession,
@@ -13,13 +15,51 @@ import type {
   Category,
   District,
   Idea,
+  IdeaImage,
   IdeaRevision,
 } from '@prisma/client';
 import { PrismaService } from '../../database/prisma.service';
+import { StorageService } from '../../storage/storage.service';
 import { AdminAuthService } from '../admin-auth/admin-auth.service';
 import { AdminAuthGuard } from '../admin-auth/guards/admin-auth.guard';
 import { IdeasController } from './ideas.controller';
 import { IdeasService } from './ideas.service';
+import { IdeaImageService } from './idea-image.service';
+
+/** In-memory stand-in for the S3-compatible storage (no real MinIO needed). */
+class FakeStorage {
+  objects = new Map<string, { body: Buffer; contentType: string }>();
+  deleted: string[] = [];
+
+  putObject(key: string, body: Buffer, contentType: string): Promise<void> {
+    this.objects.set(key, { body, contentType });
+    return Promise.resolve();
+  }
+
+  getObject(key: string) {
+    const stored = this.objects.get(key);
+    if (!stored) {
+      return Promise.reject(new Error(`missing object ${key}`));
+    }
+    return Promise.resolve({
+      body: Readable.from([stored.body]),
+      contentType: stored.contentType,
+      contentLength: stored.body.length,
+    });
+  }
+
+  deleteObjects(keys: string[]): Promise<void> {
+    this.deleted.push(...keys);
+    for (const key of keys) {
+      this.objects.delete(key);
+    }
+    return Promise.resolve();
+  }
+
+  keysEnding(suffix: string): string[] {
+    return [...this.objects.keys()].filter((key) => key.endsWith(suffix));
+  }
+}
 
 jest.mock('@node-rs/argon2', () => ({
   hash: jest.fn((value: string) => Promise.resolve(`hashed:${value}`)),
@@ -45,6 +85,7 @@ class FakePrisma {
   ideas: Idea[] = [];
   ideaDistricts: IdeaDistrictRow[] = [];
   ideaRevisions: IdeaRevision[] = [];
+  ideaImages: IdeaImage[] = [];
   private publicNumber = 0;
 
   $transaction = (arg: unknown): Promise<unknown> => {
@@ -97,6 +138,9 @@ class FakePrisma {
           districtId: r.districtId,
           district: this.districts.find((d) => d.id === r.districtId) ?? null,
         }));
+    }
+    if (include?.image) {
+      result.image = this.ideaImages.find((i) => i.ideaId === idea.id) ?? null;
     }
     return result;
   }
@@ -258,6 +302,42 @@ class FakePrisma {
       return Promise.resolve(rows);
     },
   };
+
+  ideaImage = {
+    findUnique: (args: {
+      where: { ideaId: string };
+    }): Promise<IdeaImage | null> =>
+      Promise.resolve(
+        this.ideaImages.find((i) => i.ideaId === args.where.ideaId) ?? null,
+      ),
+    upsert: (args: {
+      where: { ideaId: string };
+      create: Record<string, any>;
+      update: Record<string, any>;
+    }): Promise<IdeaImage> => {
+      const existing = this.ideaImages.find(
+        (i) => i.ideaId === args.where.ideaId,
+      );
+      if (existing) {
+        Object.assign(existing, args.update);
+        return Promise.resolve(existing);
+      }
+      const row = {
+        id: nextId('img'),
+        createdAt: new Date(),
+        ...args.create,
+      } as IdeaImage;
+      this.ideaImages.push(row);
+      return Promise.resolve(row);
+    },
+    delete: (args: { where: { ideaId: string } }): Promise<{ count: number }> => {
+      const before = this.ideaImages.length;
+      this.ideaImages = this.ideaImages.filter(
+        (i) => i.ideaId !== args.where.ideaId,
+      );
+      return Promise.resolve({ count: before - this.ideaImages.length });
+    },
+  };
 }
 
 function buildCategory(overrides: Partial<Category>): Category {
@@ -297,14 +377,41 @@ const LONG_DESC =
 describe('IdeasController (e2e)', () => {
   let app: INestApplication;
   let prisma: FakePrisma;
+  let storage: FakeStorage;
   let activeCategory: Category;
   let inactiveCategory: Category;
   let districtA: District;
   let districtB: District;
+  let validJpeg: Buffer;
+  let validPng: Buffer;
+
+  beforeAll(async () => {
+    validJpeg = await sharp({
+      create: {
+        width: 1200,
+        height: 800,
+        channels: 3,
+        background: { r: 120, g: 130, b: 140 },
+      },
+    })
+      .jpeg()
+      .toBuffer();
+    validPng = await sharp({
+      create: {
+        width: 1000,
+        height: 700,
+        channels: 4,
+        background: { r: 10, g: 20, b: 30, alpha: 1 },
+      },
+    })
+      .png()
+      .toBuffer();
+  });
 
   beforeEach(async () => {
     idCounter = 0;
     prisma = new FakePrisma();
+    storage = new FakeStorage();
     const now = new Date();
     prisma.admins.push({
       id: 'admin-1',
@@ -338,9 +445,11 @@ describe('IdeasController (e2e)', () => {
       controllers: [IdeasController],
       providers: [
         IdeasService,
+        IdeaImageService,
         AdminAuthService,
         AdminAuthGuard,
         { provide: PrismaService, useValue: prisma },
+        { provide: StorageService, useValue: storage },
       ],
     }).compile();
 
@@ -687,5 +796,168 @@ describe('IdeasController (e2e)', () => {
 
   it('rejects summary without a session (401)', async () => {
     await request(server()).get('/admin/ideas/summary').expect(401);
+  });
+
+  const upload = (ideaId: string, file: Buffer, filename: string, type: string) =>
+    request(server())
+      .post(`/admin/ideas/${ideaId}/image`)
+      .set('Cookie', AUTH_COOKIE)
+      .attach('image', file, { filename, contentType: type });
+
+  it('rejects image upload without a session (401)', async () => {
+    const idea = await createDraft();
+    await request(server())
+      .post(`/admin/ideas/${idea.id}/image`)
+      .attach('image', validJpeg, { filename: 'a.jpg', contentType: 'image/jpeg' })
+      .expect(401);
+  });
+
+  it('rejects image upload for an unknown idea (404)', async () => {
+    await upload('does-not-exist', validJpeg, 'a.jpg', 'image/jpeg').expect(404);
+  });
+
+  it('uploads a valid JPEG and stores original/optimized/thumbnail', async () => {
+    const idea = await createDraft();
+    const res = await upload(idea.id, validJpeg, 'photo.jpg', 'image/jpeg').expect(200);
+
+    expect(res.body.image).toEqual(
+      expect.objectContaining({
+        id: expect.any(String),
+        url: expect.stringContaining(`/api/admin/ideas/${idea.id}/image/optimized`),
+        thumbnailUrl: expect.stringContaining(
+          `/api/admin/ideas/${idea.id}/image/thumbnail`,
+        ),
+      }),
+    );
+    expect(res.body.image.url).not.toContain('minio');
+    expect(prisma.ideaImages).toHaveLength(1);
+    expect(storage.keysEnding('/original.jpg')).toHaveLength(1);
+    expect(storage.keysEnding('/optimized.jpg')).toHaveLength(1);
+    expect(storage.keysEnding('/thumbnail.jpg')).toHaveLength(1);
+
+    const revisions = await request(server())
+      .get(`/admin/ideas/${idea.id}/revisions`)
+      .set('Cookie', AUTH_COOKIE)
+      .expect(200);
+    expect(revisions.body[0].reason).toBe('Добавлено изображение');
+  });
+
+  it('uploads a valid PNG', async () => {
+    const idea = await createDraft();
+    const res = await upload(idea.id, validPng, 'photo.png', 'image/png').expect(200);
+    expect(res.body.image).not.toBeNull();
+    expect(storage.keysEnding('/original.png')).toHaveLength(1);
+  });
+
+  it('rejects a file larger than 10 MB (400)', async () => {
+    const idea = await createDraft();
+    const huge = Buffer.alloc(10 * 1024 * 1024 + 1, 0xff);
+    huge[0] = 0xff;
+    huge[1] = 0xd8;
+    huge[2] = 0xff;
+    await upload(idea.id, huge, 'huge.jpg', 'image/jpeg').expect(400);
+    expect(prisma.ideaImages).toHaveLength(0);
+  });
+
+  it('rejects invalid MIME / non-image payload (400)', async () => {
+    const idea = await createDraft();
+    await upload(
+      idea.id,
+      Buffer.from('not an image'),
+      'note.txt',
+      'text/plain',
+    ).expect(400);
+  });
+
+  it('rejects a fake .jpg with a wrong signature (400)', async () => {
+    const idea = await createDraft();
+    await upload(
+      idea.id,
+      Buffer.from('GIF89a-not-a-jpeg'),
+      'spoof.jpg',
+      'image/jpeg',
+    ).expect(400);
+    expect(prisma.ideaImages).toHaveLength(0);
+  });
+
+  it('strips EXIF metadata from the optimized variant', async () => {
+    const idea = await createDraft();
+    const withExif = await sharp({
+      create: {
+        width: 400,
+        height: 300,
+        channels: 3,
+        background: { r: 10, g: 20, b: 30 },
+      },
+    })
+      .withMetadata({
+        exif: { IFD0: { Copyright: 'GPS-SHOULD-NOT-SURVIVE' } },
+      })
+      .jpeg()
+      .toBuffer();
+
+    await upload(idea.id, withExif, 'exif.jpg', 'image/jpeg').expect(200);
+    const optimizedKey = storage.keysEnding('/optimized.jpg')[0];
+    const optimized = storage.objects.get(optimizedKey)!.body;
+    expect(optimized.includes(Buffer.from('GPS-SHOULD-NOT-SURVIVE'))).toBe(
+      false,
+    );
+  });
+
+  it('replaces an existing image, updates metadata and deletes old objects', async () => {
+    const idea = await createDraft();
+    await upload(idea.id, validJpeg, 'one.jpg', 'image/jpeg').expect(200);
+    const firstKeys = [...storage.objects.keys()];
+    const firstId = prisma.ideaImages[0].id;
+
+    const res = await upload(idea.id, validPng, 'two.png', 'image/png').expect(200);
+    expect(prisma.ideaImages).toHaveLength(1);
+    expect(prisma.ideaImages[0].id).toBe(firstId);
+    expect(prisma.ideaImages[0].mimeType).toBe('image/png');
+    expect(res.body.image.url).toContain('optimized');
+
+    for (const key of firstKeys) {
+      expect(storage.deleted).toContain(key);
+      expect(storage.objects.has(key)).toBe(false);
+    }
+    expect(storage.keysEnding('/original.png')).toHaveLength(1);
+
+    const revisions = await request(server())
+      .get(`/admin/ideas/${idea.id}/revisions`)
+      .set('Cookie', AUTH_COOKIE)
+      .expect(200);
+    expect(revisions.body[0].reason).toBe('Изображение заменено');
+  });
+
+  it('deletes the image record and storage objects', async () => {
+    const idea = await createDraft();
+    await upload(idea.id, validJpeg, 'one.jpg', 'image/jpeg').expect(200);
+    const keys = [...storage.objects.keys()];
+
+    const res = await request(server())
+      .delete(`/admin/ideas/${idea.id}/image`)
+      .set('Cookie', AUTH_COOKIE)
+      .expect(200);
+    expect(res.body.image).toBeNull();
+    expect(prisma.ideaImages).toHaveLength(0);
+    for (const key of keys) {
+      expect(storage.deleted).toContain(key);
+    }
+
+    const revisions = await request(server())
+      .get(`/admin/ideas/${idea.id}/revisions`)
+      .set('Cookie', AUTH_COOKIE)
+      .expect(200);
+    expect(revisions.body[0].reason).toBe('Изображение удалено');
+  });
+
+  it('allows publishing an idea without an image', async () => {
+    const idea = await createDraft({ categoryId: activeCategory.id });
+    const published = await request(server())
+      .post(`/admin/ideas/${idea.id}/publish`)
+      .set('Cookie', AUTH_COOKIE)
+      .expect(200);
+    expect(published.body.status).toBe('PUBLISHED');
+    expect(published.body.image).toBeNull();
   });
 });

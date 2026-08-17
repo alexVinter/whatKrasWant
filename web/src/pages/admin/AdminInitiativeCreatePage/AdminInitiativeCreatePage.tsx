@@ -5,6 +5,7 @@ import {
   useAdminDistricts,
 } from '../../../features/taxonomy/queries';
 import { useCreateIdea } from '../../../features/ideas/queries';
+import { uploadIdeaImage } from '../../../features/ideas/api';
 import {
   EMPTY_IDEA_FORM,
   toCreateInput,
@@ -16,6 +17,8 @@ import {
   PlaceSection,
   TerritorySection,
 } from '../initiatives/IdeaFormSections';
+import { IdeaImageField } from '../initiatives/IdeaImageField';
+import { useObjectUrl } from '../../../features/ideas/useObjectUrl';
 import fieldStyles from '../initiatives/form.module.css';
 import styles from './AdminInitiativeCreatePage.module.css';
 
@@ -26,7 +29,10 @@ export function AdminInitiativeCreatePage() {
   const createIdea = useCreateIdea();
 
   const [values, setValues] = useState<IdeaFormValues>(EMPTY_IDEA_FORM);
+  const [imageFile, setImageFile] = useState<File | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [uploading, setUploading] = useState(false);
+  const previewUrl = useObjectUrl(imageFile);
 
   const patch = (next: Partial<IdeaFormValues>) => {
     setValues((current) => ({ ...current, ...next }));
@@ -41,6 +47,19 @@ export function AdminInitiativeCreatePage() {
     }
     try {
       const created = await createIdea.mutateAsync(toCreateInput(values, action));
+      if (imageFile) {
+        setUploading(true);
+        try {
+          await uploadIdeaImage(created.id, imageFile);
+        } catch {
+          navigate(`/admin/initiatives/${created.id}`, {
+            state: { imageUploadFailed: true },
+          });
+          return;
+        } finally {
+          setUploading(false);
+        }
+      }
       navigate(`/admin/initiatives/${created.id}`);
     } catch (mutationError) {
       setError(humanizeIdeaError(mutationError));
@@ -48,7 +67,7 @@ export function AdminInitiativeCreatePage() {
   };
 
   const activeCategories = (categories.data ?? []).filter((c) => c.isActive);
-  const saving = createIdea.isPending;
+  const saving = createIdea.isPending || uploading;
 
   return (
     <div className={styles.page}>
@@ -138,12 +157,17 @@ export function AdminInitiativeCreatePage() {
         <section className={styles.card}>
           <PlaceSection values={values} onChange={patch} />
 
-          <div className={fieldStyles.field}>
-            <span className={fieldStyles.label}>Изображение инициативы</span>
-            <div className={fieldStyles.placeholder} aria-disabled="true">
-              Загрузка изображения появится на следующем этапе (E07).
-            </div>
-          </div>
+          <IdeaImageField
+            previewUrl={previewUrl}
+            fileName={imageFile?.name}
+            busy={saving}
+            removeLabel="Убрать"
+            onSelect={(file) => {
+              setImageFile(file);
+              setError(null);
+            }}
+            onRemove={() => setImageFile(null)}
+          />
 
           {error && (
             <p className={styles.error} role="alert">

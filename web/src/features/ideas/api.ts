@@ -79,3 +79,18 @@ export function restoreIdea(id: string): Promise<IdeaDetail> {
     method: 'POST',
   });
 }
+
+export function uploadIdeaImage(id: string, file: File): Promise<IdeaDetail> {
+  const body = new FormData();
+  body.append('image', file);
+  return apiFetch<IdeaDetail>(`/api/admin/ideas/${id}/image`, {
+    method: 'POST',
+    body,
+  });
+}
+
+export function deleteIdeaImage(id: string): Promise<IdeaDetail> {
+  return apiFetch<IdeaDetail>(`/api/admin/ideas/${id}/image`, {
+    method: 'DELETE',
+  });
+}

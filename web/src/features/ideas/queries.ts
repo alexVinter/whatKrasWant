@@ -10,6 +10,8 @@ import {
   restoreIdea,
   unpublishIdea,
   updateIdea,
+  uploadIdeaImage,
+  deleteIdeaImage,
 } from './api';
 import type {
   CreateIdeaInput,
@@ -90,6 +92,20 @@ export function useIdeaMutations(id: string) {
     mutationFn: () => restoreIdea(id),
     onSuccess: invalidate,
   });
+  const uploadImage = useMutation({
+    mutationFn: (file: File) => uploadIdeaImage(id, file),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ideaDetailKey(id) });
+      queryClient.invalidateQueries({ queryKey: ideaRevisionsKey(id) });
+    },
+  });
+  const deleteImage = useMutation({
+    mutationFn: () => deleteIdeaImage(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ideaDetailKey(id) });
+      queryClient.invalidateQueries({ queryKey: ideaRevisionsKey(id) });
+    },
+  });
 
-  return { save, publish, unpublish, archive, restore };
+  return { save, publish, unpublish, archive, restore, uploadImage, deleteImage };
 }

@@ -7,11 +7,13 @@ import { DistrictsModule } from './modules/districts/districts.module';
 import { HealthModule } from './modules/health/health.module';
 import { IdeasModule } from './modules/ideas/ideas.module';
 import { PublicConfigModule } from './modules/public-config/public-config.module';
+import { StorageModule } from './storage/storage.module';
 
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
     PrismaModule,
+    StorageModule,
     HealthModule,
     AdminAuthModule,
     CategoriesModule,

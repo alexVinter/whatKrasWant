@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { useLocation, useParams } from 'react-router-dom';
 import {
   useAdminCategories,
   useAdminDistricts,
@@ -16,11 +16,12 @@ import {
   validateIdeaForm,
   type IdeaFormValues,
 } from '../../../features/ideas/form';
-import { humanizeIdeaError } from '../../../features/ideas/errors';
+import { humanizeIdeaError, humanizeImageError } from '../../../features/ideas/errors';
 import {
   PlaceSection,
   TerritorySection,
 } from '../initiatives/IdeaFormSections';
+import { IdeaImageField } from '../initiatives/IdeaImageField';
 import { StatusBadge } from '../initiatives/StatusBadge';
 import fieldStyles from '../initiatives/form.module.css';
 import styles from './AdminInitiativeEditPage.module.css';
@@ -37,6 +38,7 @@ function formatDateTime(iso: string): string {
 
 export function AdminInitiativeEditPage() {
   const { id = '' } = useParams();
+  const location = useLocation();
   const idea = useIdea(id);
   const revisions = useIdeaRevisions(id);
   const categories = useAdminCategories();
@@ -45,7 +47,11 @@ export function AdminInitiativeEditPage() {
 
   const [values, setValues] = useState<IdeaFormValues>(EMPTY_IDEA_FORM);
   const [reason, setReason] = useState('');
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(
+    (location.state as { imageUploadFailed?: boolean } | null)?.imageUploadFailed
+      ? 'Инициатива сохранена, но изображение загрузить не удалось.'
+      : null,
+  );
 
   const loadedId = idea.data?.id;
   const loadedAt = idea.data?.updatedAt;
@@ -82,7 +88,9 @@ export function AdminInitiativeEditPage() {
     mutations.publish.isPending ||
     mutations.unpublish.isPending ||
     mutations.archive.isPending ||
-    mutations.restore.isPending;
+    mutations.restore.isPending ||
+    mutations.uploadImage.isPending ||
+    mutations.deleteImage.isPending;
 
   const save = async () => {
     const validationError = validateIdeaForm(values, false);
@@ -191,6 +199,26 @@ export function AdminInitiativeEditPage() {
           />
 
           <PlaceSection values={values} onChange={patch} />
+
+          <IdeaImageField
+            previewUrl={detail.image?.url ?? null}
+            busy={busy}
+            removeLabel="Удалить"
+            onSelect={async (file) => {
+              try {
+                await mutations.uploadImage.mutateAsync(file);
+              } catch (mutationError) {
+                setError(humanizeImageError(mutationError));
+              }
+            }}
+            onRemove={async () => {
+              try {
+                await mutations.deleteImage.mutateAsync();
+              } catch (mutationError) {
+                setError(humanizeImageError(mutationError));
+              }
+            }}
+          />
 
           {error && (
             <p className={styles.error} role="alert">
