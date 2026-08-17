@@ -1,0 +1,69 @@
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-width: 760px;
+}
+
+.back {
+  width: fit-content;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--k400-blue);
+}
+
+.date {
+  margin: 8px 0 0;
+  font-size: 14px;
+  color: var(--color-text-muted);
+}
+
+.title {
+  margin: 0;
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--color-text);
+}
+
+.imageFrame {
+  padding: 12px;
+  background: #f7f4ee;
+  border-radius: 12px;
+}
+
+.image {
+  display: block;
+  width: 100%;
+  border-radius: 8px;
+}
+
+.body {
+  font-size: 16px;
+  line-height: 1.6;
+  color: var(--color-text);
+}
+
+.body p {
+  margin: 0 0 16px;
+  white-space: pre-wrap;
+}
+
+.state,
+.stateError {
+  margin: 0;
+  font-size: 15px;
+}
+
+.state {
+  color: var(--color-text-muted);
+}
+
+.stateError {
+  color: var(--color-danger);
+}
+
+@media (min-width: 768px) {
+  .title {
+    font-size: 36px;
+  }
+}

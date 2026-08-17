@@ -1,6 +1,6 @@
-// «Чего хочет Красноярск?» — схема БД (Релиз 1 core).
-// Только сущности Релиза 1. Модели Релиза 2 (User, Vote, ConsentAcceptance,
-// News, LegalDocument) добавляются на соответствующих этапах.
+// «Чего хочет Красноярск?» — схема БД (Релиз 1 core + новости).
+// Модели Релиза 2 (User, Vote, ConsentAcceptance, LegalDocument)
+// добавляются на соответствующих этапах.
 
 generator client {
   provider = "prisma-client-js"
@@ -31,6 +31,11 @@ enum IdeaStatus {
 enum TerritoryType {
   DISTRICTS
   CITYWIDE
+}
+
+enum NewsStatus {
+  DRAFT
+  PUBLISHED
 }
 
 model AdminUser {
@@ -186,4 +191,35 @@ model AdminAuditLog {
   actor AdminUser? @relation(fields: [actorId], references: [id])
 
   @@map("admin_audit_logs")
+}
+
+model News {
+  id          String     @id @default(uuid())
+  slug        String     @unique
+  title       String
+  body        String
+  publishDate DateTime?  @map("publish_date")
+  status      NewsStatus @default(DRAFT)
+  createdAt   DateTime   @default(now()) @map("created_at")
+  updatedAt   DateTime   @updatedAt @map("updated_at")
+
+  image NewsImage?
+
+  @@index([status, publishDate])
+  @@map("news")
+}
+
+model NewsImage {
+  id           String   @id @default(uuid())
+  newsId       String   @unique @map("news_id")
+  originalKey  String   @map("original_key")
+  optimizedKey String   @map("optimized_key")
+  thumbnailKey String   @map("thumbnail_key")
+  mimeType     String   @map("mime_type")
+  size         Int
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  news News @relation(fields: [newsId], references: [id], onDelete: Cascade)
+
+  @@map("news_images")
 }

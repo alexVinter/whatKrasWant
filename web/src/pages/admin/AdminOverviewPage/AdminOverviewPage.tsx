@@ -17,7 +17,11 @@ const STAT_CARDS: { label: string; key: keyof IdeaSummary }[] = [
 
 const QUICK_ACTIONS: { title: string; subtitle: string; to?: string }[] = [
   { title: 'Инициативы', subtitle: 'Открыть список и модерацию' },
-  { title: 'Новости', subtitle: 'Добавление и редактирование' },
+  {
+    title: 'Новости',
+    subtitle: 'Добавление и редактирование',
+    to: '/admin/news',
+  },
   {
     title: 'Статистика и выгрузка',
     subtitle: 'Сводные данные для администратора',

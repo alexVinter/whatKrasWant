@@ -1,0 +1,3 @@
+export const DEFAULT_PUBLIC_NEWS_PAGE = 1;
+export const DEFAULT_PUBLIC_NEWS_PAGE_SIZE = 50;
+export const MAX_PUBLIC_NEWS_PAGE_SIZE = 100;

@@ -7,6 +7,7 @@ interface IdeaImageFieldProps {
   fileName?: string | null;
   statusHint?: string | null;
   busy?: boolean;
+  label?: string;
   onSelect: (file: File) => void;
   onRemove: () => void;
   removeLabel: string;
@@ -17,6 +18,7 @@ export function IdeaImageField({
   fileName,
   statusHint = null,
   busy = false,
+  label = 'Изображение инициативы',
   onSelect,
   onRemove,
   removeLabel,
@@ -44,7 +46,7 @@ export function IdeaImageField({
   return (
     <div className={styles.field}>
       <span className={styles.label} id={`${inputId}-label`}>
-        Изображение инициативы
+        {label}
       </span>
       <p className={styles.hint}>JPG или PNG, не больше 10 МБ. Одно изображение.</p>
 
@@ -53,7 +55,7 @@ export function IdeaImageField({
           <img
             className={styles.imagePreview}
             src={previewUrl}
-            alt="Изображение инициативы"
+            alt={label}
           />
           <div className={styles.imageActions}>
             <label className={styles.imageButton}>

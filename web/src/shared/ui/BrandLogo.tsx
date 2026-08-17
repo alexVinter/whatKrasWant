@@ -1,7 +1,7 @@
 import logoHorizontalRed from '../brand/k400-logo-horizontal-red.svg';
 import styles from './BrandLogo.module.css';
 
-type BrandLogoVariant = 'login' | 'sidebar' | 'topbar';
+type BrandLogoVariant = 'login' | 'sidebar' | 'topbar' | 'public' | 'footer';
 
 /**
  * Official K400 protocol block. Do not reconstruct this mark with text or CSS.

@@ -27,7 +27,11 @@ const NAV_ITEMS: NavItem[] = [
   },
   { label: 'Создать инициативу', to: '/admin/initiatives/new', end: true },
   { label: 'Категории и районы', to: '/admin/taxonomy' },
-  { label: 'Новости' },
+  {
+    label: 'Новости',
+    to: '/admin/news',
+    match: (pathname) => pathname.startsWith('/admin/news'),
+  },
   { label: 'Статистика и выгрузка', to: '/admin/statistics' },
   { label: 'Настройки', to: '/admin/settings' },
   { label: 'Журнал действий', to: '/admin/audit' },

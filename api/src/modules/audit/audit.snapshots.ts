@@ -1,4 +1,10 @@
-import type { Category, District, IdeaStatus, TerritoryType } from '@prisma/client';
+import type {
+  Category,
+  District,
+  IdeaStatus,
+  NewsStatus,
+  TerritoryType,
+} from '@prisma/client';
 import { Prisma } from '@prisma/client';
 import {
   AUDIT_ENTITIES,
@@ -69,6 +75,28 @@ export function districtAuditSnapshot(
   };
 }
 
+export interface NewsAuditFields {
+  id: string;
+  title: string;
+  slug: string;
+  publishDate: Date | null;
+  status: NewsStatus;
+}
+
+export function newsAuditSnapshot(
+  news: NewsAuditFields,
+  hasImage: boolean,
+): Prisma.InputJsonObject {
+  return {
+    id: news.id,
+    title: news.title,
+    slug: news.slug,
+    publishDate: news.publishDate ? news.publishDate.toISOString() : null,
+    status: news.status,
+    hasImage,
+  };
+}
+
 export function objectLabelFromSnapshot(
   entityType: AuditEntityType | string,
   snapshot: unknown,
@@ -88,6 +116,9 @@ export function objectLabelFromSnapshot(
   }
   if (entityType === AUDIT_ENTITIES.SETTINGS) {
     return SETTINGS_OBJECT_LABEL;
+  }
+  if (entityType === AUDIT_ENTITIES.NEWS) {
+    return typeof record.title === 'string' ? record.title : '';
   }
   return '';
 }

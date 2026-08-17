@@ -177,4 +177,34 @@ describe('admin audit log', () => {
     expect(screen.getByText('Настройки публичности')).toBeInTheDocument();
     expect(screen.queryByText('SETTINGS_UPDATED')).not.toBeInTheDocument();
   });
+
+  it('shows human labels for news audit actions', async () => {
+    installAuditMock({
+      items: [
+        {
+          id: 'n1',
+          createdAt: '2026-08-17T12:00:00.000Z',
+          action: 'NEWS_CREATED',
+          entityType: 'NEWS',
+          entityId: 'news-1',
+          actor: { id: 'a-1', login: 'admin' },
+          objectLabel: 'TEST E11 NEWS',
+        },
+        {
+          id: 'n2',
+          createdAt: '2026-08-17T12:01:00.000Z',
+          action: 'NEWS_PUBLISHED',
+          entityType: 'NEWS',
+          entityId: 'news-1',
+          actor: { id: 'a-1', login: 'admin' },
+          objectLabel: 'TEST E11 NEWS',
+        },
+      ],
+    });
+    renderApp('/admin/audit');
+    expect(await screen.findByText('Создана новость')).toBeInTheDocument();
+    expect(screen.getByText('Опубликована новость')).toBeInTheDocument();
+    expect(screen.getAllByText('TEST E11 NEWS').length).toBeGreaterThan(0);
+    expect(screen.queryByText('NEWS_CREATED')).not.toBeInTheDocument();
+  });
 });

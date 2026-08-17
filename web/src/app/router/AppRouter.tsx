@@ -11,11 +11,20 @@ import { AdminInitiativeEditPage } from '../../pages/admin/AdminInitiativeEditPa
 import { AdminAuditPage } from '../../pages/admin/AdminAuditPage/AdminAuditPage';
 import { AdminSettingsPage } from '../../pages/admin/AdminSettingsPage/AdminSettingsPage';
 import { AdminStatisticsPage } from '../../pages/admin/AdminStatisticsPage/AdminStatisticsPage';
+import { AdminNewsPage } from '../../pages/admin/AdminNewsPage/AdminNewsPage';
+import { AdminNewsFormPage } from '../../pages/admin/AdminNewsFormPage/AdminNewsFormPage';
+import { PublicLayout } from '../../layouts/PublicLayout/PublicLayout';
+import { PublicNewsPage } from '../../pages/public/PublicNewsPage/PublicNewsPage';
+import { PublicNewsDetailPage } from '../../pages/public/PublicNewsDetailPage/PublicNewsDetailPage';
 
 export function AppRouter() {
   return (
     <Routes>
       <Route path="/" element={<PublicHomePage />} />
+      <Route element={<PublicLayout />}>
+        <Route path="/news" element={<PublicNewsPage />} />
+        <Route path="/news/:slug" element={<PublicNewsDetailPage />} />
+      </Route>
       <Route path="/admin/login" element={<AdminLoginPage />} />
       <Route path="/admin" element={<RequireAdminAuth />}>
         <Route element={<AdminLayout />}>
@@ -24,6 +33,9 @@ export function AppRouter() {
           <Route path="initiatives" element={<AdminInitiativesPage />} />
           <Route path="initiatives/new" element={<AdminInitiativeCreatePage />} />
           <Route path="initiatives/:id" element={<AdminInitiativeEditPage />} />
+          <Route path="news" element={<AdminNewsPage />} />
+          <Route path="news/new" element={<AdminNewsFormPage />} />
+          <Route path="news/:id" element={<AdminNewsFormPage />} />
           <Route path="audit" element={<AdminAuditPage />} />
           <Route path="settings" element={<AdminSettingsPage />} />
           <Route path="statistics" element={<AdminStatisticsPage />} />
