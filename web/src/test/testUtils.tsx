@@ -94,6 +94,6 @@ function AppWithProviders({ initialEntry }: { initialEntry: string }) {
   );
 }
 
-export function renderApp(initialEntry: string): void {
-  render(<AppWithProviders initialEntry={initialEntry} />);
+export function renderApp(initialEntry: string) {
+  return render(<AppWithProviders initialEntry={initialEntry} />);
 }

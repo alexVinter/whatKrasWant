@@ -5,6 +5,7 @@ import styles from './form.module.css';
 interface IdeaImageFieldProps {
   previewUrl: string | null;
   fileName?: string | null;
+  statusHint?: string | null;
   busy?: boolean;
   onSelect: (file: File) => void;
   onRemove: () => void;
@@ -14,6 +15,7 @@ interface IdeaImageFieldProps {
 export function IdeaImageField({
   previewUrl,
   fileName,
+  statusHint = null,
   busy = false,
   onSelect,
   onRemove,
@@ -79,6 +81,7 @@ export function IdeaImageField({
             </button>
           </div>
           {fileName && <span className={styles.hint}>{fileName}</span>}
+          {statusHint && <span className={styles.hint}>{statusHint}</span>}
         </div>
       ) : (
         <label className={styles.imageDrop}>

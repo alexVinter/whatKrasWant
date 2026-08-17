@@ -6,9 +6,11 @@ import {
   Param,
   Patch,
   Post,
+  Req,
   UseGuards,
 } from '@nestjs/common';
 import { AdminAuthGuard } from '../admin-auth/guards/admin-auth.guard';
+import type { AdminRequest } from '../admin-auth/admin-auth.types';
 import { CategoriesService } from './categories.service';
 import { CreateCategoryDto } from './dto/create-category.dto';
 import { UpdateCategoryDto } from './dto/update-category.dto';
@@ -25,12 +27,16 @@ export class CategoriesController {
 
   @Post()
   @HttpCode(201)
-  create(@Body() dto: CreateCategoryDto) {
-    return this.categoriesService.create(dto);
+  create(@Body() dto: CreateCategoryDto, @Req() req: AdminRequest) {
+    return this.categoriesService.create(dto, req.admin!.id);
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() dto: UpdateCategoryDto) {
-    return this.categoriesService.update(id, dto);
+  update(
+    @Param('id') id: string,
+    @Body() dto: UpdateCategoryDto,
+    @Req() req: AdminRequest,
+  ) {
+    return this.categoriesService.update(id, dto, req.admin!.id);
   }
 }

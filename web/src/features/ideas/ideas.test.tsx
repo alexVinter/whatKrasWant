@@ -60,6 +60,8 @@ function installMock(options?: { loggedIn?: boolean; failImage?: boolean }) {
   }
 
   let seq = 1;
+  let imageSeq = 1;
+  const revoked: string[] = [];
   const ideas: StoredIdea[] = [
     {
       id: 'i1',
@@ -171,6 +173,12 @@ function installMock(options?: { loggedIn?: boolean; failImage?: boolean }) {
           200,
         );
       }
+      if (path.endsWith('/api/admin/audit')) {
+        return jsonResponse(
+          { items: [], page: 1, pageSize: 100, total: 0 },
+          200,
+        );
+      }
 
       const revMatch = path.match(/\/api\/admin\/ideas\/([^/]+)\/revisions$/);
       if (revMatch) {
@@ -215,10 +223,12 @@ function installMock(options?: { loggedIn?: boolean; failImage?: boolean }) {
         }
         if (method === 'POST') {
           const replaced = idea.image !== null;
+          imageSeq += 1;
+          const imageId = `img-${imageSeq}`;
           idea.image = {
-            id: `img-${idea.id}`,
-            url: `/api/admin/ideas/${idea.id}/image/optimized?v=new`,
-            thumbnailUrl: `/api/admin/ideas/${idea.id}/image/thumbnail?v=new`,
+            id: imageId,
+            url: `/api/admin/ideas/${idea.id}/image/optimized?v=${imageId}`,
+            thumbnailUrl: `/api/admin/ideas/${idea.id}/image/thumbnail?v=${imageId}`,
           };
           addRevision(idea, replaced ? 'Изображение заменено' : 'Добавлено изображение');
         } else {
@@ -312,18 +322,24 @@ function installMock(options?: { loggedIn?: boolean; failImage?: boolean }) {
     Object.defineProperty(URL, 'createObjectURL', {
       configurable: true,
       writable: true,
-      value: () => 'blob:preview',
+      value: (obj: Blob) => `blob:${(obj as File).name ?? 'file'}`,
     });
     Object.defineProperty(URL, 'revokeObjectURL', {
       configurable: true,
       writable: true,
-      value: () => undefined,
+      value: (url: string) => {
+        revoked.push(String(url));
+      },
     });
   } else {
-    vi.spyOn(URL, 'createObjectURL').mockReturnValue('blob:preview');
-    vi.spyOn(URL, 'revokeObjectURL').mockImplementation(() => undefined);
+    vi.spyOn(URL, 'createObjectURL').mockImplementation(
+      (obj) => `blob:${(obj as File).name ?? 'file'}`,
+    );
+    vi.spyOn(URL, 'revokeObjectURL').mockImplementation((url) => {
+      revoked.push(String(url));
+    });
   }
-  return { calls };
+  return { calls, revoked };
 }
 
 afterEach(() => {
@@ -544,6 +560,10 @@ describe('admin initiatives', () => {
     await userEvent.upload(input, file);
     expect(await screen.findByAltText('Изображение инициативы')).toBeInTheDocument();
     expect(screen.getByText('photo.jpg')).toBeInTheDocument();
+    expect(screen.getByAltText('Изображение инициативы')).toHaveAttribute(
+      'src',
+      'blob:photo.jpg',
+    );
   });
 
   it('shows an error for a non JPG/PNG file', async () => {
@@ -643,10 +663,14 @@ describe('admin initiatives', () => {
   it('shows an existing image on the edit page', async () => {
     installMock();
     renderApp('/admin/initiatives/i1');
-    expect(await screen.findByAltText('Изображение инициативы')).toBeInTheDocument();
+    const img = await screen.findByAltText('Изображение инициативы');
+    expect(img).toHaveAttribute(
+      'src',
+      '/api/admin/ideas/i1/image/optimized?v=img-1',
+    );
   });
 
-  it('replaces an image via POST /image', async () => {
+  it('switches preview to the local file immediately on replace', async () => {
     const { calls } = installMock();
     renderApp('/admin/initiatives/i1');
     const input = (await screen.findByLabelText('Изображение инициативы', {
@@ -658,6 +682,95 @@ describe('admin initiatives', () => {
         type: 'image/jpeg',
       }),
     );
+    expect(await screen.findByAltText('Изображение инициативы')).toHaveAttribute(
+      'src',
+      'blob:new.jpg',
+    );
+    expect(screen.getByText('Новое изображение ещё не сохранено')).toBeInTheDocument();
+    expect(
+      calls.some(
+        (c) =>
+          c.method === 'POST' && c.url.endsWith('/api/admin/ideas/i1/image'),
+      ),
+    ).toBe(false);
+  });
+
+  it('revokes the previous object URL when selecting another replacement', async () => {
+    const { revoked } = installMock();
+    renderApp('/admin/initiatives/i1');
+    const firstInput = (await screen.findByLabelText('Изображение инициативы', {
+      selector: 'input',
+    })) as HTMLInputElement;
+    await userEvent.upload(
+      firstInput,
+      new File([new Uint8Array([0xff, 0xd8, 0xff])], 'first.jpg', {
+        type: 'image/jpeg',
+      }),
+    );
+    expect(await screen.findByAltText('Изображение инициативы')).toHaveAttribute(
+      'src',
+      'blob:first.jpg',
+    );
+
+    const secondInput = screen.getByLabelText('Изображение инициативы', {
+      selector: 'input',
+    }) as HTMLInputElement;
+    await userEvent.upload(
+      secondInput,
+      new File([new Uint8Array([0x89, 0x50, 0x4e])], 'second.png', {
+        type: 'image/png',
+      }),
+    );
+    expect(await screen.findByAltText('Изображение инициативы')).toHaveAttribute(
+      'src',
+      'blob:second.png',
+    );
+    expect(revoked).toContain('blob:first.jpg');
+  });
+
+  it('restores the server image if the local replacement is cleared before upload', async () => {
+    const { calls } = installMock();
+    renderApp('/admin/initiatives/i1');
+    const input = (await screen.findByLabelText('Изображение инициативы', {
+      selector: 'input',
+    })) as HTMLInputElement;
+    await userEvent.upload(
+      input,
+      new File([new Uint8Array([0xff, 0xd8, 0xff])], 'new.jpg', {
+        type: 'image/jpeg',
+      }),
+    );
+    expect(await screen.findByAltText('Изображение инициативы')).toHaveAttribute(
+      'src',
+      'blob:new.jpg',
+    );
+    await userEvent.click(screen.getByRole('button', { name: 'Убрать' }));
+    expect(screen.getByAltText('Изображение инициативы')).toHaveAttribute(
+      'src',
+      '/api/admin/ideas/i1/image/optimized?v=img-1',
+    );
+    expect(
+      calls.some(
+        (c) =>
+          c.method === 'DELETE' && c.url.endsWith('/api/admin/ideas/i1/image'),
+      ),
+    ).toBe(false);
+  });
+
+  it('replaces an image via POST /image after save and uses the new versioned URL', async () => {
+    const { calls } = installMock();
+    renderApp('/admin/initiatives/i1');
+    const input = (await screen.findByLabelText('Изображение инициативы', {
+      selector: 'input',
+    })) as HTMLInputElement;
+    await userEvent.upload(
+      input,
+      new File([new Uint8Array([0xff, 0xd8, 0xff])], 'new.jpg', {
+        type: 'image/jpeg',
+      }),
+    );
+    await userEvent.click(screen.getByRole('button', { name: 'Сохранить' }));
+
     await waitFor(() => {
       expect(
         calls.some(
@@ -666,6 +779,71 @@ describe('admin initiatives', () => {
         ),
       ).toBe(true);
     });
+    await waitFor(() => {
+      expect(screen.getByAltText('Изображение инициативы')).toHaveAttribute(
+        'src',
+        '/api/admin/ideas/i1/image/optimized?v=img-2',
+      );
+    });
+    expect(
+      screen.queryByText('Новое изображение ещё не сохранено'),
+    ).not.toBeInTheDocument();
+  });
+
+  it('keeps the saved server image after a failed replacement', async () => {
+    const { calls } = installMock({ failImage: true });
+    renderApp('/admin/initiatives/i1');
+    const input = (await screen.findByLabelText('Изображение инициативы', {
+      selector: 'input',
+    })) as HTMLInputElement;
+    await userEvent.upload(
+      input,
+      new File([new Uint8Array([0xff, 0xd8, 0xff])], 'new.jpg', {
+        type: 'image/jpeg',
+      }),
+    );
+    await userEvent.click(screen.getByRole('button', { name: 'Сохранить' }));
+
+    expect(await screen.findByRole('alert')).toHaveTextContent(
+      'Не удалось загрузить изображение.',
+    );
+    expect(screen.getByAltText('Изображение инициативы')).toHaveAttribute(
+      'src',
+      'blob:new.jpg',
+    );
+    expect(screen.getByText('Новое изображение ещё не сохранено')).toBeInTheDocument();
+    expect(
+      calls.some(
+        (c) =>
+          c.method === 'DELETE' && c.url.endsWith('/api/admin/ideas/i1/image'),
+      ),
+    ).toBe(false);
+
+    await userEvent.click(screen.getByRole('button', { name: 'Убрать' }));
+    expect(screen.getByAltText('Изображение инициативы')).toHaveAttribute(
+      'src',
+      '/api/admin/ideas/i1/image/optimized?v=img-1',
+    );
+  });
+
+  it('revokes the local object URL on unmount', async () => {
+    const { revoked } = installMock();
+    const view = renderApp('/admin/initiatives/i1');
+    const input = (await screen.findByLabelText('Изображение инициативы', {
+      selector: 'input',
+    })) as HTMLInputElement;
+    await userEvent.upload(
+      input,
+      new File([new Uint8Array([0xff, 0xd8, 0xff])], 'new.jpg', {
+        type: 'image/jpeg',
+      }),
+    );
+    expect(await screen.findByAltText('Изображение инициативы')).toHaveAttribute(
+      'src',
+      'blob:new.jpg',
+    );
+    view.unmount();
+    expect(revoked).toContain('blob:new.jpg');
   });
 
   it('deletes an image via DELETE /image and updates the UI', async () => {

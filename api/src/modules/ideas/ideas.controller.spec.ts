@@ -25,6 +25,7 @@ import { AdminAuthGuard } from '../admin-auth/guards/admin-auth.guard';
 import { IdeasController } from './ideas.controller';
 import { IdeasService } from './ideas.service';
 import { IdeaImageService } from './idea-image.service';
+import { AuditService } from '../audit/audit.service';
 
 /** In-memory stand-in for the S3-compatible storage (no real MinIO needed). */
 class FakeStorage {
@@ -86,6 +87,16 @@ class FakePrisma {
   ideaDistricts: IdeaDistrictRow[] = [];
   ideaRevisions: IdeaRevision[] = [];
   ideaImages: IdeaImage[] = [];
+  auditLogs: Array<{
+    id: string;
+    actorId: string | null;
+    action: string;
+    entityType: string;
+    entityId: string | null;
+    beforeJson: unknown;
+    afterJson: unknown;
+    createdAt: Date;
+  }> = [];
   private publicNumber = 0;
 
   $transaction = (arg: unknown): Promise<unknown> => {
@@ -337,6 +348,32 @@ class FakePrisma {
       );
       return Promise.resolve({ count: before - this.ideaImages.length });
     },
+    create: (args: { data: Record<string, any> }): Promise<IdeaImage> => {
+      const row = {
+        id: nextId('img'),
+        createdAt: new Date(),
+        ...args.data,
+      } as IdeaImage;
+      this.ideaImages.push(row);
+      return Promise.resolve(row);
+    },
+  };
+
+  adminAuditLog = {
+    create: (args: { data: Record<string, any> }) => {
+      const row = {
+        id: nextId('audit'),
+        actorId: args.data.actorId ?? null,
+        action: args.data.action,
+        entityType: args.data.entityType,
+        entityId: args.data.entityId ?? null,
+        beforeJson: args.data.beforeJson ?? null,
+        afterJson: args.data.afterJson ?? null,
+        createdAt: new Date(Date.now() + this.auditLogs.length),
+      };
+      this.auditLogs.push(row);
+      return Promise.resolve(row);
+    },
   };
 }
 
@@ -446,6 +483,7 @@ describe('IdeasController (e2e)', () => {
       providers: [
         IdeasService,
         IdeaImageService,
+        AuditService,
         AdminAuthService,
         AdminAuthGuard,
         { provide: PrismaService, useValue: prisma },
@@ -912,9 +950,9 @@ describe('IdeasController (e2e)', () => {
 
     const res = await upload(idea.id, validPng, 'two.png', 'image/png').expect(200);
     expect(prisma.ideaImages).toHaveLength(1);
-    expect(prisma.ideaImages[0].id).toBe(firstId);
+    expect(prisma.ideaImages[0].id).not.toBe(firstId);
     expect(prisma.ideaImages[0].mimeType).toBe('image/png');
-    expect(res.body.image.url).toContain('optimized');
+    expect(res.body.image.url).toContain(`v=${prisma.ideaImages[0].id}`);
 
     for (const key of firstKeys) {
       expect(storage.deleted).toContain(key);
@@ -959,5 +997,81 @@ describe('IdeasController (e2e)', () => {
       .expect(200);
     expect(published.body.status).toBe('PUBLISHED');
     expect(published.body.image).toBeNull();
+  });
+
+  it('writes idea and image audit records without secrets', async () => {
+    const idea = await createDraft({ categoryId: activeCategory.id });
+    expect(prisma.auditLogs.map((row) => row.action)).toEqual(['IDEA_CREATED']);
+    expect(prisma.auditLogs[0].actorId).toBe('admin-1');
+    expect(JSON.stringify(prisma.auditLogs[0])).not.toContain('passwordHash');
+    expect(JSON.stringify(prisma.auditLogs[0].afterJson)).not.toContain(
+      'originalKey',
+    );
+
+    await request(server())
+      .patch(`/admin/ideas/${idea.id}`)
+      .set('Cookie', AUTH_COOKIE)
+      .send({ title: 'Обновлённое название инициативы города' })
+      .expect(200);
+    await request(server())
+      .patch(`/admin/ideas/${idea.id}`)
+      .set('Cookie', AUTH_COOKIE)
+      .send({ title: 'Обновлённое название инициативы города' })
+      .expect(200);
+    expect(
+      prisma.auditLogs.filter((row) => row.action === 'IDEA_UPDATED'),
+    ).toHaveLength(1);
+
+    await request(server())
+      .post(`/admin/ideas/${idea.id}/publish`)
+      .set('Cookie', AUTH_COOKIE)
+      .expect(200);
+    await request(server())
+      .post(`/admin/ideas/${idea.id}/publish`)
+      .set('Cookie', AUTH_COOKIE)
+      .expect(200);
+    expect(
+      prisma.auditLogs.filter((row) => row.action === 'IDEA_PUBLISHED'),
+    ).toHaveLength(1);
+
+    await request(server())
+      .post(`/admin/ideas/${idea.id}/unpublish`)
+      .set('Cookie', AUTH_COOKIE)
+      .expect(200);
+    await request(server())
+      .post(`/admin/ideas/${idea.id}/archive`)
+      .set('Cookie', AUTH_COOKIE)
+      .expect(200);
+    await request(server())
+      .post(`/admin/ideas/${idea.id}/archive`)
+      .set('Cookie', AUTH_COOKIE)
+      .expect(200);
+    await request(server())
+      .post(`/admin/ideas/${idea.id}/restore`)
+      .set('Cookie', AUTH_COOKIE)
+      .expect(200);
+
+    await upload(idea.id, validJpeg, 'one.jpg', 'image/jpeg').expect(200);
+    await upload(idea.id, validPng, 'two.png', 'image/png').expect(200);
+    await request(server())
+      .delete(`/admin/ideas/${idea.id}/image`)
+      .set('Cookie', AUTH_COOKIE)
+      .expect(200);
+
+    expect(prisma.auditLogs.map((row) => row.action)).toEqual([
+      'IDEA_CREATED',
+      'IDEA_UPDATED',
+      'IDEA_PUBLISHED',
+      'IDEA_UNPUBLISHED',
+      'IDEA_ARCHIVED',
+      'IDEA_RESTORED',
+      'IDEA_IMAGE_ADDED',
+      'IDEA_IMAGE_REPLACED',
+      'IDEA_IMAGE_REMOVED',
+    ]);
+    expect(
+      (prisma.auditLogs.find((row) => row.action === 'IDEA_IMAGE_ADDED')
+        ?.afterJson as { hasImage?: boolean })?.hasImage,
+    ).toBe(true);
   });
 });

@@ -9,6 +9,9 @@ import { PrismaService } from '../../database/prisma.service';
 import { slugify } from '../../common/slug.util';
 import { CreateCategoryDto } from './dto/create-category.dto';
 import { UpdateCategoryDto } from './dto/update-category.dto';
+import { AuditService } from '../audit/audit.service';
+import { AUDIT_ACTIONS, AUDIT_ENTITIES } from '../audit/audit.constants';
+import { categoryAuditSnapshot } from '../audit/audit.snapshots';
 
 export interface AdminCategory {
   id: string;
@@ -22,7 +25,10 @@ export interface AdminCategory {
 
 @Injectable()
 export class CategoriesService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly audit: AuditService,
+  ) {}
 
   private toAdmin(category: Category): AdminCategory {
     return {
@@ -50,18 +56,31 @@ export class CategoriesService {
     return (result._max.sortOrder ?? 0) + 1;
   }
 
-  async create(dto: CreateCategoryDto): Promise<AdminCategory> {
+  async create(dto: CreateCategoryDto, adminId: string): Promise<AdminCategory> {
     const slug = dto.slug && dto.slug.length > 0 ? dto.slug : slugify(dto.name);
     const sortOrder = dto.sortOrder ?? (await this.nextSortOrder());
 
     try {
-      const created = await this.prisma.category.create({
-        data: {
-          name: dto.name,
-          slug,
-          sortOrder,
-          isActive: dto.isActive ?? true,
-        },
+      const created = await this.prisma.$transaction(async (tx) => {
+        const row = await tx.category.create({
+          data: {
+            name: dto.name,
+            slug,
+            sortOrder,
+            isActive: dto.isActive ?? true,
+          },
+        });
+        await this.audit.write(
+          {
+            actorId: adminId,
+            action: AUDIT_ACTIONS.CATEGORY_CREATED,
+            entityType: AUDIT_ENTITIES.CATEGORY,
+            entityId: row.id,
+            afterJson: categoryAuditSnapshot(row),
+          },
+          tx,
+        );
+        return row;
       });
       return this.toAdmin(created);
     } catch (error) {
@@ -75,24 +94,52 @@ export class CategoriesService {
     }
   }
 
-  async update(id: string, dto: UpdateCategoryDto): Promise<AdminCategory> {
+  async update(
+    id: string,
+    dto: UpdateCategoryDto,
+    adminId: string,
+  ): Promise<AdminCategory> {
     const existing = await this.prisma.category.findUnique({ where: { id } });
     if (!existing) {
       throw new NotFoundException('Category not found');
     }
 
-    const data: Prisma.CategoryUpdateInput = {};
-    if (dto.name !== undefined) {
-      data.name = dto.name;
-    }
-    if (dto.sortOrder !== undefined) {
-      data.sortOrder = dto.sortOrder;
-    }
-    if (dto.isActive !== undefined) {
-      data.isActive = dto.isActive;
+    const nextName = dto.name !== undefined ? dto.name : existing.name;
+    const nextSortOrder =
+      dto.sortOrder !== undefined ? dto.sortOrder : existing.sortOrder;
+    const nextIsActive =
+      dto.isActive !== undefined ? dto.isActive : existing.isActive;
+
+    if (
+      nextName === existing.name &&
+      nextSortOrder === existing.sortOrder &&
+      nextIsActive === existing.isActive
+    ) {
+      return this.toAdmin(existing);
     }
 
-    const updated = await this.prisma.category.update({ where: { id }, data });
+    const updated = await this.prisma.$transaction(async (tx) => {
+      const row = await tx.category.update({
+        where: { id },
+        data: {
+          name: nextName,
+          sortOrder: nextSortOrder,
+          isActive: nextIsActive,
+        },
+      });
+      await this.audit.write(
+        {
+          actorId: adminId,
+          action: AUDIT_ACTIONS.CATEGORY_UPDATED,
+          entityType: AUDIT_ENTITIES.CATEGORY,
+          entityId: id,
+          beforeJson: categoryAuditSnapshot(existing),
+          afterJson: categoryAuditSnapshot(row),
+        },
+        tx,
+      );
+      return row;
+    });
     return this.toAdmin(updated);
   }
 }

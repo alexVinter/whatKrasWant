@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import 'reflect-metadata';
 import { INestApplication, ValidationPipe } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
@@ -13,6 +14,7 @@ import { AdminAuthService } from '../admin-auth/admin-auth.service';
 import { AdminAuthGuard } from '../admin-auth/guards/admin-auth.guard';
 import { CategoriesController } from './categories.controller';
 import { CategoriesService } from './categories.service';
+import { AuditService } from '../audit/audit.service';
 
 jest.mock('@node-rs/argon2', () => ({
   hash: jest.fn((value: string) => Promise.resolve(`hashed:${value}`)),
@@ -43,6 +45,23 @@ class FakePrisma {
   admins: AdminUser[] = [];
   sessions: AdminSession[] = [];
   categories: Category[] = [];
+  auditLogs: Array<{
+    id: string;
+    actorId: string | null;
+    action: string;
+    entityType: string;
+    entityId: string | null;
+    beforeJson: unknown;
+    afterJson: unknown;
+    createdAt: Date;
+  }> = [];
+
+  $transaction = (arg: unknown): Promise<unknown> => {
+    if (typeof arg === 'function') {
+      return (arg as (tx: FakePrisma) => Promise<unknown>)(this);
+    }
+    return Promise.all(arg as Promise<unknown>[]);
+  };
 
   adminSession = {
     findUnique: (args: {
@@ -106,6 +125,23 @@ class FakePrisma {
       return Promise.resolve(category);
     },
   };
+
+  adminAuditLog = {
+    create: (args: { data: Record<string, any> }) => {
+      const row = {
+        id: `audit-${this.auditLogs.length + 1}`,
+        actorId: args.data.actorId ?? null,
+        action: args.data.action,
+        entityType: args.data.entityType,
+        entityId: args.data.entityId ?? null,
+        beforeJson: args.data.beforeJson ?? null,
+        afterJson: args.data.afterJson ?? null,
+        createdAt: new Date(),
+      };
+      this.auditLogs.push(row);
+      return Promise.resolve(row);
+    },
+  };
 }
 
 describe('CategoriesController (e2e)', () => {
@@ -144,6 +180,7 @@ describe('CategoriesController (e2e)', () => {
       controllers: [CategoriesController],
       providers: [
         CategoriesService,
+        AuditService,
         AdminAuthService,
         AdminAuthGuard,
         { provide: PrismaService, useValue: prisma },
@@ -259,5 +296,37 @@ describe('CategoriesController (e2e)', () => {
       .set('Cookie', AUTH_COOKIE)
       .send({ name: 'X' })
       .expect(404);
+  });
+
+  it('writes category audit records and skips no-op PATCH', async () => {
+    const created = await request(server())
+      .post('/admin/categories')
+      .set('Cookie', AUTH_COOKIE)
+      .send({ name: 'TEST E08 CATEGORY' })
+      .expect(201);
+
+    expect(prisma.auditLogs.map((row) => row.action)).toEqual([
+      'CATEGORY_CREATED',
+    ]);
+    expect(prisma.auditLogs[0].actorId).toBe('admin-1');
+    expect(
+      (prisma.auditLogs[0].afterJson as { name?: string }).name,
+    ).toBe('TEST E08 CATEGORY');
+
+    await request(server())
+      .patch(`/admin/categories/${created.body.id}`)
+      .set('Cookie', AUTH_COOKIE)
+      .send({ name: 'TEST E08 CATEGORY renamed' })
+      .expect(200);
+    await request(server())
+      .patch(`/admin/categories/${created.body.id}`)
+      .set('Cookie', AUTH_COOKIE)
+      .send({ name: 'TEST E08 CATEGORY renamed' })
+      .expect(200);
+
+    expect(prisma.auditLogs.map((row) => row.action)).toEqual([
+      'CATEGORY_CREATED',
+      'CATEGORY_UPDATED',
+    ]);
   });
 });

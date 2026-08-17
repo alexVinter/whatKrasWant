@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import 'reflect-metadata';
 import { INestApplication, ValidationPipe } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
@@ -13,6 +14,7 @@ import { AdminAuthService } from '../admin-auth/admin-auth.service';
 import { AdminAuthGuard } from '../admin-auth/guards/admin-auth.guard';
 import { DistrictsController } from './districts.controller';
 import { DistrictsService } from './districts.service';
+import { AuditService } from '../audit/audit.service';
 
 jest.mock('@node-rs/argon2', () => ({
   hash: jest.fn((value: string) => Promise.resolve(`hashed:${value}`)),
@@ -40,6 +42,23 @@ class FakePrisma {
   admins: AdminUser[] = [];
   sessions: AdminSession[] = [];
   districts: District[] = [];
+  auditLogs: Array<{
+    id: string;
+    actorId: string | null;
+    action: string;
+    entityType: string;
+    entityId: string | null;
+    beforeJson: unknown;
+    afterJson: unknown;
+    createdAt: Date;
+  }> = [];
+
+  $transaction = (arg: unknown): Promise<unknown> => {
+    if (typeof arg === 'function') {
+      return (arg as (tx: FakePrisma) => Promise<unknown>)(this);
+    }
+    return Promise.all(arg as Promise<unknown>[]);
+  };
 
   adminSession = {
     findUnique: (args: {
@@ -93,6 +112,23 @@ class FakePrisma {
       return Promise.resolve(district);
     },
   };
+
+  adminAuditLog = {
+    create: (args: { data: Record<string, any> }) => {
+      const row = {
+        id: `audit-${this.auditLogs.length + 1}`,
+        actorId: args.data.actorId ?? null,
+        action: args.data.action,
+        entityType: args.data.entityType,
+        entityId: args.data.entityId ?? null,
+        beforeJson: args.data.beforeJson ?? null,
+        afterJson: args.data.afterJson ?? null,
+        createdAt: new Date(),
+      };
+      this.auditLogs.push(row);
+      return Promise.resolve(row);
+    },
+  };
 }
 
 describe('DistrictsController (e2e)', () => {
@@ -130,6 +166,7 @@ describe('DistrictsController (e2e)', () => {
       controllers: [DistrictsController],
       providers: [
         DistrictsService,
+        AuditService,
         AdminAuthService,
         AdminAuthGuard,
         { provide: PrismaService, useValue: prisma },
@@ -210,5 +247,29 @@ describe('DistrictsController (e2e)', () => {
       .set('Cookie', AUTH_COOKIE)
       .send({ name: 'X' })
       .expect(404);
+  });
+
+  it('writes district audit records', async () => {
+    const created = await request(server())
+      .post('/admin/districts')
+      .set('Cookie', AUTH_COOKIE)
+      .send({ name: 'TEST E08 DISTRICT' })
+      .expect(201);
+
+    expect(prisma.auditLogs.map((row) => row.action)).toEqual([
+      'DISTRICT_CREATED',
+    ]);
+    expect(prisma.auditLogs[0].actorId).toBe('admin-1');
+
+    await request(server())
+      .patch(`/admin/districts/${created.body.id}`)
+      .set('Cookie', AUTH_COOKIE)
+      .send({ name: 'TEST E08 DISTRICT renamed' })
+      .expect(200);
+
+    expect(prisma.auditLogs.map((row) => row.action)).toEqual([
+      'DISTRICT_CREATED',
+      'DISTRICT_UPDATED',
+    ]);
   });
 });

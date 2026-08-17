@@ -8,6 +8,7 @@ import { AdminTaxonomyPage } from '../../pages/admin/AdminTaxonomyPage/AdminTaxo
 import { AdminInitiativesPage } from '../../pages/admin/AdminInitiativesPage/AdminInitiativesPage';
 import { AdminInitiativeCreatePage } from '../../pages/admin/AdminInitiativeCreatePage/AdminInitiativeCreatePage';
 import { AdminInitiativeEditPage } from '../../pages/admin/AdminInitiativeEditPage/AdminInitiativeEditPage';
+import { AdminAuditPage } from '../../pages/admin/AdminAuditPage/AdminAuditPage';
 
 export function AppRouter() {
   return (
@@ -21,6 +22,7 @@ export function AppRouter() {
           <Route path="initiatives" element={<AdminInitiativesPage />} />
           <Route path="initiatives/new" element={<AdminInitiativeCreatePage />} />
           <Route path="initiatives/:id" element={<AdminInitiativeEditPage />} />
+          <Route path="audit" element={<AdminAuditPage />} />
         </Route>
       </Route>
     </Routes>

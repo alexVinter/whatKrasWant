@@ -14,6 +14,9 @@ import {
   type DetectedImage,
 } from '../../common/image-signature.util';
 import { IdeasService } from './ideas.service';
+import { AuditService } from '../audit/audit.service';
+import { AUDIT_ACTIONS, AUDIT_ENTITIES } from '../audit/audit.constants';
+import { ideaAuditSnapshot } from '../audit/audit.snapshots';
 
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10 MB
 const OPTIMIZED_MAX_WIDTH = 1920;
@@ -34,6 +37,7 @@ export class IdeaImageService {
     private readonly prisma: PrismaService,
     private readonly storage: StorageService,
     private readonly ideasService: IdeasService,
+    private readonly audit: AuditService,
   ) {}
 
   async upload(
@@ -79,22 +83,20 @@ export class IdeaImageService {
       ? [previous.originalKey, previous.optimizedKey, previous.thumbnailKey]
       : [];
     const reason = previous ? 'Изображение заменено' : 'Добавлено изображение';
+    const action = previous
+      ? AUDIT_ACTIONS.IDEA_IMAGE_REPLACED
+      : AUDIT_ACTIONS.IDEA_IMAGE_ADDED;
     const districtIds = idea.districts.map((d) => d.districtId);
 
     // 3. Only after successful upload do we switch the DB metadata + revision.
     try {
       await this.prisma.$transaction(async (tx) => {
-        await tx.ideaImage.upsert({
-          where: { ideaId },
-          create: {
+        if (previous) {
+          await tx.ideaImage.delete({ where: { ideaId } });
+        }
+        await tx.ideaImage.create({
+          data: {
             ideaId,
-            originalKey,
-            optimizedKey,
-            thumbnailKey,
-            mimeType: contentType,
-            size: file.size,
-          },
-          update: {
             originalKey,
             optimizedKey,
             thumbnailKey,
@@ -120,6 +122,25 @@ export class IdeaImageService {
             },
           },
         });
+        await this.audit.write(
+          {
+            actorId: adminId,
+            action,
+            entityType: AUDIT_ENTITIES.IDEA,
+            entityId: ideaId,
+            beforeJson: {
+              ...ideaAuditSnapshot(idea, districtIds, Boolean(previous)),
+              mimeType: previous?.mimeType ?? null,
+              size: previous?.size ?? null,
+            },
+            afterJson: {
+              ...ideaAuditSnapshot(updated, districtIds, true),
+              mimeType: contentType,
+              size: file.size,
+            },
+          },
+          tx,
+        );
       });
     } catch (error) {
       // 4. DB update failed: remove the just-uploaded orphan objects.
@@ -174,6 +195,21 @@ export class IdeaImageService {
           },
         },
       });
+      await this.audit.write(
+        {
+          actorId: adminId,
+          action: AUDIT_ACTIONS.IDEA_IMAGE_REMOVED,
+          entityType: AUDIT_ENTITIES.IDEA,
+          entityId: ideaId,
+          beforeJson: {
+            ...ideaAuditSnapshot(idea, districtIds, true),
+            mimeType: image.mimeType,
+            size: image.size,
+          },
+          afterJson: ideaAuditSnapshot(updated, districtIds, false),
+        },
+        tx,
+      );
     });
 
     await this.storage.deleteObjects([

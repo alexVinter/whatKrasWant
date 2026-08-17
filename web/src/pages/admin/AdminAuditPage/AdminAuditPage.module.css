@@ -1,0 +1,128 @@
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.title {
+  margin: 0;
+  font-size: 26px;
+  font-weight: 700;
+  color: var(--color-text);
+}
+
+.state,
+.stateError {
+  margin: 0;
+  font-size: 14px;
+}
+
+.state {
+  color: var(--color-text-muted);
+}
+
+.stateError {
+  color: var(--color-danger);
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.listHeader {
+  display: none;
+}
+
+.row {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 16px 18px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-card);
+}
+
+.date,
+.admin {
+  display: none;
+}
+
+.action {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.meta {
+  font-size: 13px;
+  color: var(--color-text-muted);
+}
+
+.object {
+  font-size: 14px;
+  color: var(--color-text);
+}
+
+@media (min-width: 768px) {
+  .page {
+    gap: 20px;
+  }
+
+  .list {
+    gap: 0;
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-card);
+    overflow: hidden;
+  }
+
+  .listHeader {
+    display: grid;
+    grid-template-columns: 1.3fr 1.1fr 1.6fr 1.6fr;
+    gap: 16px;
+    padding: 14px 20px;
+    font-size: 12px;
+    color: var(--color-text-muted);
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  .row {
+    display: grid;
+    grid-template-columns: 1.3fr 1.1fr 1.6fr 1.6fr;
+    gap: 16px;
+    align-items: center;
+    padding: 16px 20px;
+    background: transparent;
+    border: none;
+    border-bottom: 1px solid var(--color-border);
+    border-radius: 0;
+    box-shadow: none;
+  }
+
+  .row:last-child {
+    border-bottom: none;
+  }
+
+  .date,
+  .admin {
+    display: block;
+    font-size: 14px;
+    color: var(--color-text-muted);
+  }
+
+  .action,
+  .object {
+    font-size: 14px;
+    font-weight: 400;
+    color: var(--color-text);
+  }
+
+  .meta {
+    display: none;
+  }
+}

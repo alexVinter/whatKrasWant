@@ -1,5 +1,10 @@
 import { useNavigate } from 'react-router-dom';
 import { useIdeasSummary } from '../../../features/ideas/queries';
+import { useAuditLog } from '../../../features/audit/queries';
+import {
+  auditActionLabel,
+  formatAuditDateTime,
+} from '../../../features/audit/labels';
 import type { IdeaSummary } from '../../../features/ideas/types';
 import styles from './AdminOverviewPage.module.css';
 
@@ -22,6 +27,8 @@ const QUICK_ACTIONS = [
 export function AdminOverviewPage() {
   const navigate = useNavigate();
   const summary = useIdeasSummary();
+  const recent = useAuditLog({ page: 1, pageSize: 3 });
+  const recentItems = recent.data?.items ?? [];
 
   return (
     <div className={styles.page}>
@@ -68,9 +75,33 @@ export function AdminOverviewPage() {
 
         <section className={`${styles.panel} ${styles.recentPanel}`}>
           <h2 className={styles.panelTitle}>Последние действия</h2>
-          <p className={styles.empty} aria-hidden="true">
-            —
-          </p>
+          {recent.isLoading && <p className={styles.empty}>Загрузка…</p>}
+          {recent.isError && (
+            <p className={styles.recentError} role="alert">
+              Не удалось загрузить действия.
+            </p>
+          )}
+          {!recent.isLoading && !recent.isError && recentItems.length === 0 && (
+            <p className={styles.empty}>Записей пока нет.</p>
+          )}
+          {recentItems.length > 0 && (
+            <ul className={styles.recentList}>
+              {recentItems.map((item) => (
+                <li key={item.id} className={styles.recentItem}>
+                  <span className={styles.recentAction}>
+                    {auditActionLabel(item.action)}
+                  </span>
+                  <span className={styles.recentMeta}>
+                    {item.actor?.login ?? 'Администратор'} ·{' '}
+                    {formatAuditDateTime(item.createdAt)}
+                  </span>
+                  <span className={styles.recentObject}>
+                    {item.objectLabel || '—'}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          )}
         </section>
       </div>
     </div>

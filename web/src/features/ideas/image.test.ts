@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { validateImageFile } from './image';
+import { resolveImagePreview, validateImageFile } from './image';
 
 describe('validateImageFile', () => {
   it('accepts JPEG and PNG', () => {
@@ -19,5 +19,15 @@ describe('validateImageFile', () => {
       type: 'image/jpeg',
     });
     expect(validateImageFile(big)).toBe('Максимальный размер файла — 10 МБ.');
+  });
+
+  it('prefers the local object URL over the saved server image', () => {
+    expect(
+      resolveImagePreview('blob:new', '/api/admin/ideas/i1/image/optimized?v=old'),
+    ).toBe('blob:new');
+    expect(
+      resolveImagePreview(null, '/api/admin/ideas/i1/image/optimized?v=old'),
+    ).toBe('/api/admin/ideas/i1/image/optimized?v=old');
+    expect(resolveImagePreview(null, null)).toBeNull();
   });
 });

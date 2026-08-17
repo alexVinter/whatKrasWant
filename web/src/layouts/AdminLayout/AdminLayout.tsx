@@ -30,7 +30,7 @@ const NAV_ITEMS: NavItem[] = [
   { label: 'Новости' },
   { label: 'Статистика и выгрузка' },
   { label: 'Настройки' },
-  { label: 'Журнал действий' },
+  { label: 'Журнал действий', to: '/admin/audit' },
 ];
 
 function isItemActive(item: NavItem, pathname: string): boolean {

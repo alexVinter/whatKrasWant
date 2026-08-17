@@ -17,6 +17,8 @@ import {
   type IdeaFormValues,
 } from '../../../features/ideas/form';
 import { humanizeIdeaError, humanizeImageError } from '../../../features/ideas/errors';
+import { resolveImagePreview } from '../../../features/ideas/image';
+import { useObjectUrl } from '../../../features/ideas/useObjectUrl';
 import {
   PlaceSection,
   TerritorySection,
@@ -47,11 +49,13 @@ export function AdminInitiativeEditPage() {
 
   const [values, setValues] = useState<IdeaFormValues>(EMPTY_IDEA_FORM);
   const [reason, setReason] = useState('');
+  const [pendingFile, setPendingFile] = useState<File | null>(null);
   const [error, setError] = useState<string | null>(
     (location.state as { imageUploadFailed?: boolean } | null)?.imageUploadFailed
       ? 'Инициатива сохранена, но изображение загрузить не удалось.'
       : null,
   );
+  const localPreviewUrl = useObjectUrl(pendingFile);
 
   const loadedId = idea.data?.id;
   const loadedAt = idea.data?.updatedAt;
@@ -82,6 +86,10 @@ export function AdminInitiativeEditPage() {
   }
 
   const detail = idea.data;
+  const previewUrl = resolveImagePreview(
+    localPreviewUrl,
+    detail.image?.url ?? null,
+  );
   const activeCategories = (categories.data ?? []).filter((c) => c.isActive);
   const busy =
     mutations.save.isPending ||
@@ -91,6 +99,14 @@ export function AdminInitiativeEditPage() {
     mutations.restore.isPending ||
     mutations.uploadImage.isPending ||
     mutations.deleteImage.isPending;
+
+  const persistPendingImage = async () => {
+    if (!pendingFile) {
+      return;
+    }
+    await mutations.uploadImage.mutateAsync(pendingFile);
+    setPendingFile(null);
+  };
 
   const save = async () => {
     const validationError = validateIdeaForm(values, false);
@@ -103,6 +119,12 @@ export function AdminInitiativeEditPage() {
       setReason('');
     } catch (mutationError) {
       setError(humanizeIdeaError(mutationError));
+      return;
+    }
+    try {
+      await persistPendingImage();
+    } catch (mutationError) {
+      setError(humanizeImageError(mutationError));
     }
   };
 
@@ -117,9 +139,14 @@ export function AdminInitiativeEditPage() {
       }
     }
     try {
+      await persistPendingImage();
       await mutations[action].mutateAsync();
     } catch (mutationError) {
-      setError(humanizeIdeaError(mutationError));
+      setError(
+        pendingFile
+          ? humanizeImageError(mutationError)
+          : humanizeIdeaError(mutationError),
+      );
     }
   };
 
@@ -201,17 +228,23 @@ export function AdminInitiativeEditPage() {
           <PlaceSection values={values} onChange={patch} />
 
           <IdeaImageField
-            previewUrl={detail.image?.url ?? null}
+            previewUrl={previewUrl}
+            fileName={pendingFile?.name}
+            statusHint={
+              pendingFile ? 'Новое изображение ещё не сохранено' : null
+            }
             busy={busy}
-            removeLabel="Удалить"
-            onSelect={async (file) => {
-              try {
-                await mutations.uploadImage.mutateAsync(file);
-              } catch (mutationError) {
-                setError(humanizeImageError(mutationError));
-              }
+            removeLabel={pendingFile ? 'Убрать' : 'Удалить'}
+            onSelect={(file) => {
+              setPendingFile(file);
+              setError(null);
             }}
             onRemove={async () => {
+              if (pendingFile) {
+                setPendingFile(null);
+                setError(null);
+                return;
+              }
               try {
                 await mutations.deleteImage.mutateAsync();
               } catch (mutationError) {

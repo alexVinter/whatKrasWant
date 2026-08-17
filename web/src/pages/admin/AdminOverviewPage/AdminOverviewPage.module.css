@@ -131,6 +131,43 @@
   color: var(--color-text-muted);
 }
 
+.recentError {
+  margin: 0;
+  font-size: 13px;
+  color: var(--color-danger);
+}
+
+.recentList {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.recentItem {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.recentAction {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.recentMeta {
+  font-size: 12px;
+  color: var(--color-text-muted);
+}
+
+.recentObject {
+  font-size: 13px;
+  color: var(--color-text);
+}
+
 /* --- Desktop (>= 768px) --- */
 @media (min-width: 768px) {
   .page {

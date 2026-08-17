@@ -9,6 +9,9 @@ import { slugify } from '../../common/slug.util';
 import { CreateIdeaDto, IdeaCreateAction } from './dto/create-idea.dto';
 import { UpdateIdeaDto } from './dto/update-idea.dto';
 import { ListIdeasDto } from './dto/list-ideas.dto';
+import { AuditService } from '../audit/audit.service';
+import { AUDIT_ACTIONS, AUDIT_ENTITIES } from '../audit/audit.constants';
+import { ideaAuditSnapshot } from '../audit/audit.snapshots';
 
 const DEFAULT_PAGE_SIZE = 20;
 
@@ -20,7 +23,10 @@ interface PlacementResult {
 
 @Injectable()
 export class IdeasService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly audit: AuditService,
+  ) {}
 
   // ---------- Queries ----------
 
@@ -243,6 +249,17 @@ export class IdeasService {
         },
       });
 
+      await this.audit.write(
+        {
+          actorId: adminId,
+          action: AUDIT_ACTIONS.IDEA_CREATED,
+          entityType: AUDIT_ENTITIES.IDEA,
+          entityId: idea.id,
+          afterJson: ideaAuditSnapshot(idea, districtIds, false),
+        },
+        tx,
+      );
+
       return idea;
     });
 
@@ -252,7 +269,7 @@ export class IdeasService {
   async update(id: string, dto: UpdateIdeaDto, adminId: string) {
     const existing = await this.prisma.idea.findUnique({
       where: { id },
-      include: { districts: true },
+      include: { districts: true, image: true },
     });
     if (!existing) {
       throw new NotFoundException('Initiative not found');
@@ -358,6 +375,23 @@ export class IdeasService {
           snapshotJson: this.snapshot(updated, sortedNextDistrictIds),
         },
       });
+
+      const hasImage = existing.image !== null;
+      await this.audit.write(
+        {
+          actorId: adminId,
+          action: AUDIT_ACTIONS.IDEA_UPDATED,
+          entityType: AUDIT_ENTITIES.IDEA,
+          entityId: id,
+          beforeJson: ideaAuditSnapshot(
+            existing,
+            existingDistrictIds,
+            hasImage,
+          ),
+          afterJson: ideaAuditSnapshot(updated, sortedNextDistrictIds, hasImage),
+        },
+        tx,
+      );
     });
 
     return this.findOne(id);
@@ -366,7 +400,7 @@ export class IdeasService {
   async publish(id: string, adminId: string) {
     const existing = await this.prisma.idea.findUnique({
       where: { id },
-      include: { districts: true },
+      include: { districts: true, image: true },
     });
     if (!existing) {
       throw new NotFoundException('Initiative not found');
@@ -409,6 +443,25 @@ export class IdeasService {
           snapshotJson: this.snapshot(updated, districtIds),
         },
       });
+      await this.audit.write(
+        {
+          actorId: adminId,
+          action: AUDIT_ACTIONS.IDEA_PUBLISHED,
+          entityType: AUDIT_ENTITIES.IDEA,
+          entityId: id,
+          beforeJson: ideaAuditSnapshot(
+            existing,
+            districtIds,
+            existing.image !== null,
+          ),
+          afterJson: ideaAuditSnapshot(
+            updated,
+            districtIds,
+            existing.image !== null,
+          ),
+        },
+        tx,
+      );
     });
 
     return this.findOne(id);
@@ -417,7 +470,7 @@ export class IdeasService {
   async unpublish(id: string, adminId: string) {
     const existing = await this.prisma.idea.findUnique({
       where: { id },
-      include: { districts: true },
+      include: { districts: true, image: true },
     });
     if (!existing) {
       throw new NotFoundException('Initiative not found');
@@ -443,6 +496,25 @@ export class IdeasService {
           snapshotJson: this.snapshot(updated, districtIds),
         },
       });
+      await this.audit.write(
+        {
+          actorId: adminId,
+          action: AUDIT_ACTIONS.IDEA_UNPUBLISHED,
+          entityType: AUDIT_ENTITIES.IDEA,
+          entityId: id,
+          beforeJson: ideaAuditSnapshot(
+            existing,
+            districtIds,
+            existing.image !== null,
+          ),
+          afterJson: ideaAuditSnapshot(
+            updated,
+            districtIds,
+            existing.image !== null,
+          ),
+        },
+        tx,
+      );
     });
 
     return this.findOne(id);
@@ -451,7 +523,7 @@ export class IdeasService {
   async archive(id: string, adminId: string) {
     const existing = await this.prisma.idea.findUnique({
       where: { id },
-      include: { districts: true },
+      include: { districts: true, image: true },
     });
     if (!existing) {
       throw new NotFoundException('Initiative not found');
@@ -474,6 +546,25 @@ export class IdeasService {
           snapshotJson: this.snapshot(updated, districtIds),
         },
       });
+      await this.audit.write(
+        {
+          actorId: adminId,
+          action: AUDIT_ACTIONS.IDEA_ARCHIVED,
+          entityType: AUDIT_ENTITIES.IDEA,
+          entityId: id,
+          beforeJson: ideaAuditSnapshot(
+            existing,
+            districtIds,
+            existing.image !== null,
+          ),
+          afterJson: ideaAuditSnapshot(
+            updated,
+            districtIds,
+            existing.image !== null,
+          ),
+        },
+        tx,
+      );
     });
 
     return this.findOne(id);
@@ -482,7 +573,7 @@ export class IdeasService {
   async restore(id: string, adminId: string) {
     const existing = await this.prisma.idea.findUnique({
       where: { id },
-      include: { districts: true },
+      include: { districts: true, image: true },
     });
     if (!existing) {
       throw new NotFoundException('Initiative not found');
@@ -507,6 +598,25 @@ export class IdeasService {
           snapshotJson: this.snapshot(updated, districtIds),
         },
       });
+      await this.audit.write(
+        {
+          actorId: adminId,
+          action: AUDIT_ACTIONS.IDEA_RESTORED,
+          entityType: AUDIT_ENTITIES.IDEA,
+          entityId: id,
+          beforeJson: ideaAuditSnapshot(
+            existing,
+            districtIds,
+            existing.image !== null,
+          ),
+          afterJson: ideaAuditSnapshot(
+            updated,
+            districtIds,
+            existing.image !== null,
+          ),
+        },
+        tx,
+      );
     });
 
     return this.findOne(id);

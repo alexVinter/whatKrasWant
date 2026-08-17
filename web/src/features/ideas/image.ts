@@ -1,6 +1,17 @@
 export const MAX_IMAGE_BYTES = 10 * 1024 * 1024;
 export const IMAGE_ACCEPT = 'image/jpeg,image/png,.jpg,.jpeg,.png';
 
+/**
+ * Local replacement preview always wins over the saved server image.
+ * Pass `null` for either side when that source is absent.
+ */
+export function resolveImagePreview(
+  localUrl: string | null,
+  serverUrl: string | null,
+): string | null {
+  return localUrl ?? serverUrl;
+}
+
 /** Client-side pre-check. Backend still re-validates MIME and signature. */
 export function validateImageFile(file: File): string | null {
   const type = file.type.toLowerCase();

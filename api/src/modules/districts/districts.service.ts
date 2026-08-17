@@ -8,6 +8,9 @@ import type { District } from '@prisma/client';
 import { PrismaService } from '../../database/prisma.service';
 import { CreateDistrictDto } from './dto/create-district.dto';
 import { UpdateDistrictDto } from './dto/update-district.dto';
+import { AuditService } from '../audit/audit.service';
+import { AUDIT_ACTIONS, AUDIT_ENTITIES } from '../audit/audit.constants';
+import { districtAuditSnapshot } from '../audit/audit.snapshots';
 
 export interface AdminDistrict {
   id: string;
@@ -20,7 +23,10 @@ export interface AdminDistrict {
 
 @Injectable()
 export class DistrictsService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly audit: AuditService,
+  ) {}
 
   private toAdmin(district: District): AdminDistrict {
     return {
@@ -47,16 +53,29 @@ export class DistrictsService {
     return (result._max.sortOrder ?? 0) + 1;
   }
 
-  async create(dto: CreateDistrictDto): Promise<AdminDistrict> {
+  async create(dto: CreateDistrictDto, adminId: string): Promise<AdminDistrict> {
     const sortOrder = dto.sortOrder ?? (await this.nextSortOrder());
 
     try {
-      const created = await this.prisma.district.create({
-        data: {
-          name: dto.name,
-          sortOrder,
-          isActive: dto.isActive ?? true,
-        },
+      const created = await this.prisma.$transaction(async (tx) => {
+        const row = await tx.district.create({
+          data: {
+            name: dto.name,
+            sortOrder,
+            isActive: dto.isActive ?? true,
+          },
+        });
+        await this.audit.write(
+          {
+            actorId: adminId,
+            action: AUDIT_ACTIONS.DISTRICT_CREATED,
+            entityType: AUDIT_ENTITIES.DISTRICT,
+            entityId: row.id,
+            afterJson: districtAuditSnapshot(row),
+          },
+          tx,
+        );
+        return row;
       });
       return this.toAdmin(created);
     } catch (error) {
@@ -70,25 +89,53 @@ export class DistrictsService {
     }
   }
 
-  async update(id: string, dto: UpdateDistrictDto): Promise<AdminDistrict> {
+  async update(
+    id: string,
+    dto: UpdateDistrictDto,
+    adminId: string,
+  ): Promise<AdminDistrict> {
     const existing = await this.prisma.district.findUnique({ where: { id } });
     if (!existing) {
       throw new NotFoundException('District not found');
     }
 
-    const data: Prisma.DistrictUpdateInput = {};
-    if (dto.name !== undefined) {
-      data.name = dto.name;
-    }
-    if (dto.sortOrder !== undefined) {
-      data.sortOrder = dto.sortOrder;
-    }
-    if (dto.isActive !== undefined) {
-      data.isActive = dto.isActive;
+    const nextName = dto.name !== undefined ? dto.name : existing.name;
+    const nextSortOrder =
+      dto.sortOrder !== undefined ? dto.sortOrder : existing.sortOrder;
+    const nextIsActive =
+      dto.isActive !== undefined ? dto.isActive : existing.isActive;
+
+    if (
+      nextName === existing.name &&
+      nextSortOrder === existing.sortOrder &&
+      nextIsActive === existing.isActive
+    ) {
+      return this.toAdmin(existing);
     }
 
     try {
-      const updated = await this.prisma.district.update({ where: { id }, data });
+      const updated = await this.prisma.$transaction(async (tx) => {
+        const row = await tx.district.update({
+          where: { id },
+          data: {
+            name: nextName,
+            sortOrder: nextSortOrder,
+            isActive: nextIsActive,
+          },
+        });
+        await this.audit.write(
+          {
+            actorId: adminId,
+            action: AUDIT_ACTIONS.DISTRICT_UPDATED,
+            entityType: AUDIT_ENTITIES.DISTRICT,
+            entityId: id,
+            beforeJson: districtAuditSnapshot(existing),
+            afterJson: districtAuditSnapshot(row),
+          },
+          tx,
+        );
+        return row;
+      });
       return this.toAdmin(updated);
     } catch (error) {
       if (
