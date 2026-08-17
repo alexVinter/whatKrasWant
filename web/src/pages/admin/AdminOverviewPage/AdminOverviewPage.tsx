@@ -1,16 +1,17 @@
+import { useNavigate } from 'react-router-dom';
+import { useIdeasSummary } from '../../../features/ideas/queries';
+import type { IdeaSummary } from '../../../features/ideas/types';
 import styles from './AdminOverviewPage.module.css';
 
-// Statistics backend does not exist yet: values are shown as a neutral
-// placeholder ("—" bar), never as fabricated numbers.
-const STAT_CARDS = [
-  { label: 'Всего инициатив' },
-  { label: 'Черновики' },
-  { label: 'Опубликованные' },
-  { label: 'Архив' },
+const STAT_CARDS: { label: string; key: keyof IdeaSummary }[] = [
+  { label: 'Всего инициатив', key: 'total' },
+  { label: 'Черновики', key: 'draft' },
+  { label: 'Опубликованные', key: 'published' },
+  { label: 'Архив', key: 'archived' },
 ];
 
-// Navigation shortcuts from the approved layout. Target sections are not
-// implemented in E04, so these cards are non-interactive placeholders.
+// Navigation shortcuts from the approved layout. Only "Инициативы" is wired in
+// E06; the remaining sections are placeholders until their stages.
 const QUICK_ACTIONS = [
   { title: 'Инициативы', subtitle: 'Открыть список и модерацию' },
   { title: 'Новости', subtitle: 'Добавление и редактирование' },
@@ -19,11 +20,18 @@ const QUICK_ACTIONS = [
 ];
 
 export function AdminOverviewPage() {
+  const navigate = useNavigate();
+  const summary = useIdeasSummary();
+
   return (
     <div className={styles.page}>
       <div className={styles.header}>
         <h1 className={styles.title}>Обзор</h1>
-        <button type="button" className={styles.addButton}>
+        <button
+          type="button"
+          className={styles.addButton}
+          onClick={() => navigate('/admin/initiatives/new')}
+        >
           Добавить инициативу
         </button>
       </div>
@@ -31,11 +39,15 @@ export function AdminOverviewPage() {
       <section className={styles.stats} aria-label="Показатели">
         {STAT_CARDS.map((card) => (
           <div key={card.label} className={styles.statCard}>
-            <span
-              className={styles.statValue}
-              role="img"
-              aria-label="Нет данных"
-            />
+            {summary.isSuccess ? (
+              <span className={styles.statNumber}>{summary.data[card.key]}</span>
+            ) : (
+              <span
+                className={styles.statValue}
+                role="img"
+                aria-label={summary.isError ? 'Нет данных' : 'Загрузка'}
+              />
+            )}
             <span className={styles.statLabel}>{card.label}</span>
           </div>
         ))}

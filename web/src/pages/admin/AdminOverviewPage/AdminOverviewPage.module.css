@@ -60,6 +60,13 @@
   border-radius: 2px;
 }
 
+.statNumber {
+  font-size: 30px;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--color-text);
+}
+
 .statLabel {
   font-size: 13px;
   color: var(--color-text-muted);

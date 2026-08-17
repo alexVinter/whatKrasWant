@@ -1,0 +1,97 @@
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.title {
+  margin: 0;
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--color-text);
+}
+
+.columns {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 20px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-card);
+}
+
+.error {
+  margin: 0;
+  font-size: 13px;
+  color: var(--color-danger);
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.draftButton,
+.publishButton {
+  flex: 1;
+  min-width: 140px;
+  padding: 12px 18px;
+  font-size: 14px;
+  font-weight: 600;
+  border: none;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: background-color 0.15s ease, opacity 0.15s ease;
+}
+
+.draftButton {
+  color: #5f5747;
+  /* Beige taken from the approved mockup; no official gold RGB is invented. */
+  background: #f2e8d8;
+}
+
+.draftButton:hover {
+  background: #ecdfc9;
+}
+
+.publishButton {
+  color: #ffffff;
+  background: var(--color-danger);
+}
+
+.publishButton:hover {
+  background: var(--color-danger-hover);
+}
+
+.draftButton:disabled,
+.publishButton:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+/* --- Desktop (>= 1024px): two side-by-side cards per approved mockup. --- */
+@media (min-width: 1024px) {
+  .page {
+    gap: 24px;
+  }
+
+  .title {
+    font-size: 28px;
+  }
+
+  .columns {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+    align-items: start;
+  }
+}

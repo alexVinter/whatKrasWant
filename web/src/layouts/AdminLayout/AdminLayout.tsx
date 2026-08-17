@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { NavLink, Outlet, useNavigate } from 'react-router-dom';
+import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { logoutAdmin } from '../../features/admin-auth/api';
 import { ADMIN_SESSION_QUERY_KEY } from '../../features/admin-auth/useAdminSession';
 import { BrandLogo } from '../../shared/ui/BrandLogo';
@@ -10,25 +10,48 @@ interface NavItem {
   label: string;
   to?: string;
   end?: boolean;
+  match?: (pathname: string) => boolean;
 }
 
-// Approved admin navigation. Only "Обзор" is a real route in E04; the other
-// sections are shown per the mockup but are not yet implemented.
+// Approved admin navigation. Sections without a `to` are shown per the mockup
+// but are not implemented yet.
 const NAV_ITEMS: NavItem[] = [
   { label: 'Обзор', to: '/admin', end: true },
-  { label: 'Инициативы' },
-  { label: 'Создать инициативу' },
-  { label: 'Категории и районы' },
+  {
+    label: 'Инициативы',
+    to: '/admin/initiatives',
+    match: (pathname) =>
+      pathname === '/admin/initiatives' ||
+      (pathname.startsWith('/admin/initiatives/') &&
+        pathname !== '/admin/initiatives/new'),
+  },
+  { label: 'Создать инициативу', to: '/admin/initiatives/new', end: true },
+  { label: 'Категории и районы', to: '/admin/taxonomy' },
   { label: 'Новости' },
   { label: 'Статистика и выгрузка' },
   { label: 'Настройки' },
   { label: 'Журнал действий' },
 ];
 
+function isItemActive(item: NavItem, pathname: string): boolean {
+  if (!item.to) {
+    return false;
+  }
+  if (item.match) {
+    return item.match(pathname);
+  }
+  return item.end ? pathname === item.to : pathname.startsWith(item.to);
+}
+
 export function AdminLayout() {
   const navigate = useNavigate();
+  const location = useLocation();
   const queryClient = useQueryClient();
   const [menuOpen, setMenuOpen] = useState(false);
+
+  const activeSection =
+    NAV_ITEMS.find((item) => isItemActive(item, location.pathname))?.label ??
+    'Обзор';
 
   const logout = useMutation({
     mutationFn: logoutAdmin,
@@ -48,7 +71,7 @@ export function AdminLayout() {
           <span className={styles.topbarLogo}>
             <BrandLogo variant="topbar" />
           </span>
-          <span className={styles.topbarSection}>Обзор</span>
+          <span className={styles.topbarSection}>{activeSection}</span>
         </div>
         <button
           type="button"
@@ -82,8 +105,12 @@ export function AdminLayout() {
                 to={item.to}
                 end={item.end}
                 onClick={closeMenu}
-                className={({ isActive }) =>
-                  `${styles.navItem} ${isActive ? styles.navItemActive : ''}`
+                className={() =>
+                  `${styles.navItem} ${
+                    isItemActive(item, location.pathname)
+                      ? styles.navItemActive
+                      : ''
+                  }`
                 }
               >
                 {item.label}

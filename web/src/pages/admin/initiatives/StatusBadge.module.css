@@ -1,0 +1,28 @@
+.badge {
+  display: inline-block;
+  padding: 4px 12px;
+  font-size: 12px;
+  font-weight: 600;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+
+.published {
+  color: #1f7a4d;
+  background: #e6f5ec;
+}
+
+.moderation {
+  color: #9a6a12;
+  background: #fbf0d6;
+}
+
+.draft {
+  color: var(--color-text-muted);
+  background: #eceff3;
+}
+
+.archived {
+  color: #b02a37;
+  background: #f7e2e4;
+}

@@ -4,6 +4,10 @@ import { AdminLayout } from '../../layouts/AdminLayout/AdminLayout';
 import { PublicHomePage } from '../../pages/PublicHomePage/PublicHomePage';
 import { AdminLoginPage } from '../../pages/admin/AdminLoginPage/AdminLoginPage';
 import { AdminOverviewPage } from '../../pages/admin/AdminOverviewPage/AdminOverviewPage';
+import { AdminTaxonomyPage } from '../../pages/admin/AdminTaxonomyPage/AdminTaxonomyPage';
+import { AdminInitiativesPage } from '../../pages/admin/AdminInitiativesPage/AdminInitiativesPage';
+import { AdminInitiativeCreatePage } from '../../pages/admin/AdminInitiativeCreatePage/AdminInitiativeCreatePage';
+import { AdminInitiativeEditPage } from '../../pages/admin/AdminInitiativeEditPage/AdminInitiativeEditPage';
 
 export function AppRouter() {
   return (
@@ -13,6 +17,10 @@ export function AppRouter() {
       <Route path="/admin" element={<RequireAdminAuth />}>
         <Route element={<AdminLayout />}>
           <Route index element={<AdminOverviewPage />} />
+          <Route path="taxonomy" element={<AdminTaxonomyPage />} />
+          <Route path="initiatives" element={<AdminInitiativesPage />} />
+          <Route path="initiatives/new" element={<AdminInitiativeCreatePage />} />
+          <Route path="initiatives/:id" element={<AdminInitiativeEditPage />} />
         </Route>
       </Route>
     </Routes>

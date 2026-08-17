@@ -1,0 +1,231 @@
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* Page title lives in the mobile top bar; shown inline only on desktop. */
+.title {
+  display: none;
+}
+
+.columns {
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+}
+
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.sectionHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.sectionTitle {
+  margin: 0;
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--color-text);
+}
+
+.addButton {
+  flex-shrink: 0;
+  padding: 8px 16px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #ffffff;
+  background: var(--color-primary);
+  border: none;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+
+.addButton:hover {
+  background: var(--color-primary-hover);
+}
+
+/* Categories — mobile: stacked white cards. */
+.categoryList {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.categoryRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+  padding: 16px 18px;
+  font: inherit;
+  text-align: left;
+  color: var(--color-text);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-card);
+  cursor: pointer;
+  transition: border-color 0.15s ease, background-color 0.15s ease;
+}
+
+.categoryRow:hover {
+  border-color: #d3d8de;
+}
+
+.rowName {
+  font-size: 15px;
+  color: inherit;
+}
+
+.status {
+  flex-shrink: 0;
+  padding: 4px 12px;
+  font-size: 12px;
+  font-weight: 600;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+
+.statusActive {
+  color: #1f7a4d;
+  background: #e6f5ec;
+}
+
+.statusInactive {
+  color: var(--color-text-muted);
+  background: #eceff3;
+}
+
+/* Districts — mobile: two-column beige chips (per approved mobile mockup, screen 14). */
+.districtList {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.districtRow {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 8px;
+  width: 100%;
+  padding: 12px 16px;
+  font: inherit;
+  text-align: left;
+  color: #5f5747;
+  /* Beige taken from the approved mobile mockup; no official gold RGB is invented. */
+  background: #f6ece0;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+
+.districtRow:hover {
+  background: #f1e3d1;
+}
+
+.districtRowInactive {
+  opacity: 0.5;
+}
+
+.districtStatus {
+  display: none;
+}
+
+.state {
+  margin: 0;
+  font-size: 14px;
+  color: var(--color-text-muted);
+}
+
+.stateError {
+  margin: 0;
+  font-size: 14px;
+  color: var(--color-danger);
+}
+
+/* --- Desktop (>= 768px) --- */
+@media (min-width: 768px) {
+  .page {
+    gap: 24px;
+  }
+
+  .title {
+    display: block;
+    margin: 0;
+    font-size: 26px;
+    font-weight: 700;
+    color: var(--color-text);
+  }
+
+  .section {
+    min-width: 0;
+  }
+
+  .sectionTitle {
+    font-size: 18px;
+  }
+
+  /* Both lists collapse into a single bordered card with divided rows. */
+  .categoryList,
+  .districtList {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-card);
+    overflow: hidden;
+  }
+
+  .categoryRow,
+  .districtRow {
+    justify-content: space-between;
+    padding: 14px 18px;
+    color: var(--color-text);
+    background: transparent;
+    border: none;
+    border-bottom: 1px solid var(--color-border);
+    border-radius: 0;
+    box-shadow: none;
+  }
+
+  .categoryRow:last-child,
+  .districtRow:last-child {
+    border-bottom: none;
+  }
+
+  .categoryRow:hover,
+  .districtRow:hover {
+    background: var(--color-surface-muted);
+  }
+
+  .districtRowInactive {
+    opacity: 1;
+  }
+
+  .districtStatus {
+    display: inline-block;
+  }
+}
+
+/* --- Wide desktop (>= 1024px): two side-by-side columns per approved desktop mockup. --- */
+@media (min-width: 1024px) {
+  .columns {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 28px;
+    align-items: start;
+  }
+}
