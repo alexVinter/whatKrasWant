@@ -1,0 +1,19 @@
+.logo {
+  display: block;
+  height: auto;
+  width: auto;
+  max-width: 100%;
+  object-fit: contain;
+}
+
+.login {
+  width: 168px;
+}
+
+.sidebar {
+  width: 148px;
+}
+
+.topbar {
+  width: 72px;
+}

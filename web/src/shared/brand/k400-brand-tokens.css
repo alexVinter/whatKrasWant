@@ -1,0 +1,14 @@
+:root {
+  /* Official RGB values stated in K400 brandbook, p.20 */
+  --k400-red: #E4032E;
+  --k400-blue-light: #0087CD;
+  --k400-blue: #005AAA;
+  --k400-burgundy: #B41E41;
+
+  /*
+   * Gold/beige tones are specified in the supplied short brandbook
+   * in CMYK only (25/40/60/5 and 10/15/30/0).
+   * Do not label an arbitrary RGB conversion as the official web value.
+   * For UI, prefer the approved web mockup value until an official RGB is supplied.
+   */
+}

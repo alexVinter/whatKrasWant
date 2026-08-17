@@ -1,3 +1,62 @@
+@import './shared/brand/k400-brand-tokens.css';
+
 :root {
-  font-family: system-ui, sans-serif;
+  /* Layout/surface tokens from approved mockups (screens 09–10). */
+  --color-bg: #f1f3f6;
+  --color-surface: #ffffff;
+  --color-surface-muted: #f4f6f8;
+  --color-border: #e3e6ea;
+  --color-text: #1c2b3a;
+  --color-text-muted: #6b7686;
+  --color-navy: #16324f;
+  --color-navy-hover: rgba(255, 255, 255, 0.08);
+  --color-navy-active: rgba(255, 255, 255, 0.14);
+
+  /* Mockup chrome that matches official K400 RGB (brandbook p.20). */
+  --color-primary: var(--k400-blue);
+  --color-primary-hover: var(--k400-blue-light);
+  --color-danger: var(--k400-red);
+  --color-danger-hover: var(--k400-burgundy);
+
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 12px;
+
+  --shadow-card: 0 1px 3px rgba(16, 24, 40, 0.06), 0 1px 2px rgba(16, 24, 40, 0.04);
+
+  --font-family: system-ui, -apple-system, 'Segoe UI', Roboto, Arial, sans-serif;
+
+  font-family: var(--font-family);
+  color: var(--color-text);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--color-bg);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+button {
+  font-family: inherit;
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
 }
