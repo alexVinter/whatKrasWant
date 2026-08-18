@@ -8,6 +8,8 @@ import {
   FOOTER_SUPPORT_PHRASE,
   FOOTER_USEFUL_LINKS,
 } from './footer';
+import { useActiveHomeSection } from '../../shared/motion/useActiveHomeSection';
+import { scrollToHomeSection } from '../../shared/motion/scrollToHomeSection';
 import styles from './PublicLayout.module.css';
 
 function sectionHref(id: string, onHome: boolean): string {
@@ -55,6 +57,7 @@ export function PublicLayout() {
   const onHome = location.pathname === '/';
   const newsActive = location.pathname.startsWith('/news');
   const initiativesActive = location.pathname.startsWith('/initiatives');
+  const activeHomeSection = useActiveHomeSection(onHome);
 
   const features = configQuery.data?.features;
   const submissionEnabled = features?.PUBLIC_SUBMISSION ?? false;
@@ -63,18 +66,41 @@ export function PublicLayout() {
     setMenuOpen(false);
   }, [location.pathname, location.hash]);
 
+  useEffect(() => {
+    if (!onHome || !location.hash) {
+      return;
+    }
+    const sectionId = location.hash.replace('#', '');
+    if (!sectionId) {
+      return;
+    }
+    requestAnimationFrame(() => scrollToHomeSection(sectionId));
+  }, [location.hash, onHome]);
+
   const closeMenu = () => setMenuOpen(false);
 
   const navClassName = (item: (typeof NAV_ITEMS)[number]) => {
     const hash = location.hash;
-    const active =
-      (item.id === 'news' && (newsActive || (onHome && hash === '#news'))) ||
-      (item.id === 'map' && onHome && hash === '#map') ||
-      (item.id === 'rating' && onHome && hash === '#rating') ||
-      (item.id === 'project' &&
-        onHome &&
-        (hash === '' || hash === '#project'));
+    const active = onHome
+      ? activeHomeSection === item.id
+      : (item.id === 'news' && newsActive) ||
+        (item.id === 'rating' && initiativesActive) ||
+        (item.id === 'map' && onHome && hash === '#map') ||
+        (item.id === 'project' && onHome && (hash === '' || hash === '#project'));
     return `${styles.navLink} ${active ? styles.navLinkActive : ''}`;
+  };
+
+  const handleSectionNav = (
+    event: React.MouseEvent<HTMLAnchorElement>,
+    sectionId: string,
+  ) => {
+    if (!onHome) {
+      return;
+    }
+    event.preventDefault();
+    scrollToHomeSection(sectionId);
+    closeMenu();
+    window.history.replaceState(null, '', `#${sectionId}`);
   };
 
   return (
@@ -90,6 +116,7 @@ export function PublicLayout() {
               key={item.id}
               href={sectionHref(item.id, onHome)}
               className={navClassName(item)}
+              onClick={(event) => handleSectionNav(event, item.id)}
             >
               {item.label}
             </a>
@@ -117,7 +144,7 @@ export function PublicLayout() {
               key={item.id}
               href={sectionHref(item.id, onHome)}
               className={styles.mobileNavLink}
-              onClick={closeMenu}
+              onClick={(event) => handleSectionNav(event, item.id)}
             >
               {item.label}
             </a>

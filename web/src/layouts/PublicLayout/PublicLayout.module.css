@@ -55,6 +55,9 @@
   white-space: nowrap;
   padding-bottom: 4px;
   border-bottom: 2px solid transparent;
+  transition:
+    color 0.25s ease,
+    border-color 0.25s ease;
 }
 
 .navLinkActive {

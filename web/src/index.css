@@ -1,4 +1,5 @@
 @import './shared/brand/k400-brand-tokens.css';
+@import './shared/motion/homeMotion.css';
 
 :root {
   /* Layout/surface tokens from approved mockups (screens 09–10). */
@@ -35,6 +36,23 @@
 
 * {
   box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+}
+
+#project,
+#map,
+#rating,
+#news {
+  scroll-margin-top: var(--home-header-offset);
 }
 
 html,

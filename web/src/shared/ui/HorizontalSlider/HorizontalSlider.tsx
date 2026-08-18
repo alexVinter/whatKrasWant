@@ -2,6 +2,7 @@ import {
   forwardRef,
   useImperativeHandle,
   useRef,
+  type CSSProperties,
   type ReactNode,
 } from 'react';
 import styles from './HorizontalSlider.module.css';
@@ -56,11 +57,24 @@ export const HorizontalSlider = forwardRef<
 
 export function HorizontalSliderItem({
   children,
+  className,
+  revealDelayMs,
 }: {
   children: ReactNode;
+  className?: string;
+  revealDelayMs?: number;
 }) {
+  const style =
+    revealDelayMs !== undefined
+      ? ({ '--home-card-reveal-delay': `${revealDelayMs}ms` } as CSSProperties)
+      : undefined;
+
   return (
-    <div className={styles.item} role="listitem">
+    <div
+      className={`${styles.item} ${className ?? ''}`.trim()}
+      role="listitem"
+      style={style}
+    >
       {children}
     </div>
   );

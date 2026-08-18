@@ -23,6 +23,7 @@
   --home-hero-body-line-height: 1.55;
   --home-section-title-size: clamp(26px, 2.8vw, 36px);
   --home-map-height: 400px;
+  --home-header-offset: 88px;
 }
 
 @media (min-width: 768px) {
@@ -36,5 +37,6 @@
   :root {
     --home-container-padding: 0;
     --home-section-gap: 36px;
+    --home-header-offset: 96px;
   }
 }

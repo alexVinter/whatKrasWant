@@ -9,6 +9,7 @@ import {
   type HorizontalSliderHandle,
 } from '../../shared/ui/HorizontalSlider/HorizontalSlider';
 import { isDevPreview } from '../../shared/dev/isDevPreview';
+import { useRevealOnScroll } from '../../shared/motion/useRevealOnScroll';
 import { heroComposition, MOCK_NEWS_CARDS } from './homeVisual.constants';
 import { HomeMapSection } from './HomeMapSection';
 import { HomeRatingSection } from './HomeRatingSection';
@@ -42,6 +43,7 @@ export function PublicHomePage() {
   const configQuery = usePublicConfig();
   const newsQuery = usePublicNews();
   const newsSliderRef = useRef<HorizontalSliderHandle>(null);
+  const newsReveal = useRevealOnScroll<HTMLElement>();
   const features = configQuery.data?.features;
   const catalogEnabled = features?.PUBLIC_CATALOG ?? false;
   const submissionEnabled = features?.PUBLIC_SUBMISSION ?? false;
@@ -57,12 +59,12 @@ export function PublicHomePage() {
       <section id="project" className={styles.hero} aria-labelledby="hero-title">
         <div className={styles.heroInner}>
           <div className={styles.heroCopy}>
-            <h1 id="hero-title" className={styles.heroTitle}>
+            <h1 id="hero-title" className={`${styles.heroTitle} homeMotionFadeUp`}>
               Чего хочет
               <br />
               Красноярск?
             </h1>
-            <p className={styles.heroText}>
+            <p className={`${styles.heroText} homeMotionFadeUpDelay1`}>
               <span className={styles.heroTextLine}>
                 Общественная инициатива, которая собирает идеи горожан о развитии
               </span>
@@ -73,13 +75,16 @@ export function PublicHomePage() {
                 самые популярные передаются администрации города.
               </span>
             </p>
-            <SubmitCta enabled={submissionEnabled} className={styles.heroCta} />
-            <p className={styles.ideasCount}>
+            <SubmitCta
+              enabled={submissionEnabled}
+              className={`${styles.heroCta} homeMotionFadeUpDelay2`}
+            />
+            <p className={`${styles.ideasCount} homeMotionFadeUpDelay3`}>
               Количество собранных идей:{' '}
               <span className={styles.ideasCountValue}>—</span>
             </p>
           </div>
-          <div className={styles.heroVisual}>
+          <div className={`${styles.heroVisual} homeMotionSlideIn`}>
             <div className={styles.heroArtViewport}>
               <img
                 className={styles.heroImage}
@@ -101,7 +106,12 @@ export function PublicHomePage() {
 
       <HomeRatingSection catalogEnabled={catalogEnabled} />
 
-      <section id="news" className={styles.newsSection} aria-labelledby="news-heading">
+      <section
+        id="news"
+        ref={newsReveal.ref}
+        className={`${styles.newsSection} ${newsReveal.isVisible ? 'homeMotionCardsVisible' : ''}`}
+        aria-labelledby="news-heading"
+      >
         <HomeSectionHeader
           title="Новости"
           titleId="news-heading"
@@ -125,7 +135,11 @@ export function PublicHomePage() {
         {showMockNews && (
           <HorizontalSlider ref={newsSliderRef} ariaLabel="Новости" className={styles.newsSlider}>
             {mockNewsCards.map((item, index) => (
-              <HorizontalSliderItem key={`mock-news-${index}`}>
+              <HorizontalSliderItem
+                key={`mock-news-${index}`}
+                revealDelayMs={index * 100}
+                className="homeMotionCardReveal"
+              >
                 <article className={styles.newsCard}>
                   <span className={styles.newsImageWrap}>
                     <img className={styles.newsImage} src={item.image} alt="" />
@@ -140,8 +154,12 @@ export function PublicHomePage() {
 
         {showLiveNews && (
           <HorizontalSlider ref={newsSliderRef} ariaLabel="Новости" className={styles.newsSlider}>
-            {liveNews.map((item) => (
-              <HorizontalSliderItem key={item.slug}>
+            {liveNews.map((item, index) => (
+              <HorizontalSliderItem
+                key={item.slug}
+                revealDelayMs={index * 100}
+                className="homeMotionCardReveal"
+              >
                 <Link to={`/news/${item.slug}`} className={styles.newsCard}>
                   <span className={styles.newsImageWrap}>
                     {item.thumbnailUrl ? (

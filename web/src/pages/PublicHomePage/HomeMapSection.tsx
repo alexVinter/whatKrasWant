@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom';
 import { IdeasMap } from '../../shared/map/IdeasMap';
 import { usePublicMapIdeas } from '../../features/public-ideas/queries';
+import { useRevealOnScroll } from '../../shared/motion/useRevealOnScroll';
 import { HomeSectionHeader } from './HomeSectionHeader';
 import styles from './HomeMapSection.module.css';
 
@@ -30,6 +31,7 @@ export function HomeMapSection({
 }: HomeMapSectionProps) {
   const query = usePublicMapIdeas(catalogEnabled);
   const markers = query.data?.items ?? [];
+  const mapReveal = useRevealOnScroll<HTMLDivElement>({ threshold: 0.2 });
 
   return (
     <section id="map" className={styles.section} aria-labelledby="map-heading">
@@ -42,7 +44,10 @@ export function HomeMapSection({
       />
 
       <div className={styles.mapContainer}>
-        <div className={styles.mapWrap}>
+        <div
+          ref={mapReveal.ref}
+          className={`${styles.mapWrap} homeMotionRevealScale ${mapReveal.isVisible ? 'isVisible' : ''}`}
+        >
           <IdeasMap markers={markers} className={styles.map} />
           {catalogEnabled && query.isLoading && (
             <p className={styles.stateOverlay} role="status">

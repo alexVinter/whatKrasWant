@@ -7,6 +7,7 @@ import {
   type HorizontalSliderHandle,
 } from '../../shared/ui/HorizontalSlider/HorizontalSlider';
 import { isDevPreview } from '../../shared/dev/isDevPreview';
+import { useRevealOnScroll } from '../../shared/motion/useRevealOnScroll';
 import { MOCK_RATING_CARDS } from './homeVisual.constants';
 import { HomeSectionHeader } from './HomeSectionHeader';
 import styles from './HomeRatingSection.module.css';
@@ -35,9 +36,15 @@ export function HomeRatingSection({ catalogEnabled }: HomeRatingSectionProps) {
   const showLiveRating = catalogEnabled && query.isSuccess && liveItems.length > 0;
   const showMockRating = isDevPreview && !showLiveRating;
   const showArrows = showLiveRating || showMockRating;
+  const sectionReveal = useRevealOnScroll<HTMLElement>({ threshold: 0.12 });
 
   return (
-    <section id="rating" className={styles.section} aria-labelledby="rating-heading">
+    <section
+      id="rating"
+      ref={sectionReveal.ref}
+      className={`${styles.section} ${sectionReveal.isVisible ? 'homeMotionCardsVisible' : ''}`}
+      aria-labelledby="rating-heading"
+    >
       <HomeSectionHeader
         title="Рейтинг инициатив"
         titleId="rating-heading"
@@ -64,8 +71,12 @@ export function HomeRatingSection({ catalogEnabled }: HomeRatingSectionProps) {
           ariaLabel="Рейтинг инициатив"
           className={styles.ratingSlider}
         >
-          {MOCK_RATING_CARDS.map((item) => (
-            <HorizontalSliderItem key={item.rank}>
+          {MOCK_RATING_CARDS.map((item, index) => (
+            <HorizontalSliderItem
+              key={item.rank}
+              revealDelayMs={index * 100}
+              className="homeMotionCardReveal"
+            >
               <article className={styles.card} aria-label={item.title}>
                 <span className={styles.imageWrap}>
                   <span className={styles.rank} aria-hidden="true">
@@ -89,7 +100,11 @@ export function HomeRatingSection({ catalogEnabled }: HomeRatingSectionProps) {
           className={styles.ratingSlider}
         >
           {liveItems.map((item, index) => (
-            <HorizontalSliderItem key={item.slug}>
+            <HorizontalSliderItem
+              key={item.slug}
+              revealDelayMs={index * 100}
+              className="homeMotionCardReveal"
+            >
               <Link to={`/initiatives/${item.slug}`} className={styles.card}>
                 <span className={styles.imageWrap}>
                   <span className={styles.rank} aria-hidden="true">
