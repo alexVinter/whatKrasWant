@@ -1,0 +1,119 @@
+@import 'maplibre-gl/dist/maplibre-gl.css';
+
+.idea-map-marker {
+  display: block;
+  width: 26px;
+  height: 26px;
+}
+
+.idea-map-marker span {
+  display: block;
+  width: 24px;
+  height: 24px;
+  margin: 1px auto 0;
+  border-radius: 50%;
+  background: var(--k400-red);
+  border: 2px solid #ffffff;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
+  cursor: pointer;
+}
+
+.maplibregl-map {
+  font-family: var(--font-family);
+}
+
+.maplibregl-popup.idea-map-popup-shell .maplibregl-popup-content {
+  padding: 16px;
+  border-radius: 6px;
+  box-shadow: 0 2px 8px rgba(28, 43, 58, 0.08);
+  line-height: 1.4;
+}
+
+.maplibregl-popup.idea-map-popup-shell .maplibregl-popup-tip {
+  border-top-color: #ffffff;
+}
+
+.idea-map-popup {
+  display: grid;
+  grid-template-columns: 160px 1fr;
+  gap: 16px;
+  align-items: start;
+  width: 473px;
+  min-height: 160px;
+}
+
+.idea-map-popupImageWrap {
+  display: block;
+  width: 160px;
+  height: 160px;
+  overflow: hidden;
+  background: #ece6db;
+}
+
+.idea-map-popupImage {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.idea-map-popupImageFallback {
+  display: block;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, #ece6db, #ddd4c7);
+}
+
+.idea-map-popupBody {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  min-height: 160px;
+}
+
+.idea-map-popupAuthor {
+  margin: 0 0 8px;
+  font-size: 14px;
+  color: var(--k400-text-muted);
+}
+
+.idea-map-popupTitle {
+  margin: 0 0 auto;
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 1.35;
+  color: var(--k400-text);
+}
+
+.idea-map-popupLink {
+  margin-top: 12px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--k400-blue);
+}
+
+.maplibregl-ctrl-attrib {
+  font-size: 11px;
+}
+
+.maplibregl-ctrl-attrib-button {
+  display: none;
+}
+
+@media (max-width: 767px) {
+  .idea-map-popup {
+    width: min(100%, 320px);
+    grid-template-columns: 96px 1fr;
+    min-height: 0;
+  }
+
+  .idea-map-popupImageWrap {
+    width: 96px;
+    height: 96px;
+  }
+
+  .idea-map-popupBody {
+    min-height: 96px;
+  }
+}

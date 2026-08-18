@@ -3,20 +3,39 @@
   display: flex;
   flex-direction: column;
   background: #ffffff;
+  overflow-x: clip;
 }
 
 .topStripe {
   height: 4px;
-  background: linear-gradient(90deg, var(--k400-red) 50%, var(--k400-blue) 50%);
+  background: linear-gradient(
+    90deg,
+    var(--k400-red) 0%,
+    var(--k400-red) 31%,
+    var(--k400-gold) 31%,
+    var(--k400-gold) 55%,
+    var(--k400-blue) 55%,
+    var(--k400-blue) 100%
+  );
 }
 
 .header {
-  display: flex;
+  box-sizing: border-box;
+  display: grid;
+  grid-template-columns: 1fr auto;
   align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-  padding: 12px 16px;
-  background: #ffffff;
+  gap: 12px;
+  width: min(100%, var(--home-container-max));
+  max-width: var(--home-container-max);
+  margin-inline: auto;
+  padding: 12px var(--home-container-padding);
+  background: transparent;
+}
+
+.headerDivider {
+  width: 100%;
+  height: 1px;
+  background: var(--color-border);
 }
 
 .logoLink {
@@ -25,19 +44,50 @@
   flex-shrink: 0;
 }
 
-.desktopNav,
-.cta {
+.desktopNav {
   display: none;
 }
 
 .navLink {
   font-size: 15px;
   font-weight: 600;
-  color: var(--color-text);
+  color: var(--k400-text);
+  white-space: nowrap;
+  padding-bottom: 4px;
+  border-bottom: 2px solid transparent;
 }
 
 .navLinkActive {
   color: var(--k400-red);
+  border-bottom-color: var(--k400-red);
+}
+
+.cta {
+  display: none;
+}
+
+.cta,
+.mobileCta {
+  box-sizing: border-box;
+  align-items: center;
+  justify-content: center;
+  min-width: 200px;
+  height: 44px;
+  padding: 0 20px;
+  font-size: 14px;
+  font-weight: 700;
+  color: #ffffff;
+  background: var(--k400-red);
+  border: none;
+  border-radius: 0;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.cta:disabled,
+.mobileCta:disabled {
+  opacity: 0.72;
+  cursor: not-allowed;
 }
 
 .burger {
@@ -48,6 +98,7 @@
   justify-content: center;
   align-items: center;
   gap: 5px;
+  margin-left: auto;
   border: none;
   background: transparent;
   cursor: pointer;
@@ -55,7 +106,7 @@
 
 .burger span {
   display: block;
-  width: 20px;
+  width: 22px;
   height: 2px;
   background: var(--k400-blue);
 }
@@ -63,56 +114,65 @@
 .mobileMenu {
   display: flex;
   flex-direction: column;
-  gap: 12px;
-  padding: 12px 16px 20px;
+  gap: 14px;
+  padding: 8px var(--home-container-padding) 20px;
   border-bottom: 1px solid var(--color-border);
+  background: #ffffff;
 }
 
 .mobileNavLink {
   font-size: 16px;
   font-weight: 600;
+  color: var(--k400-text);
 }
 
 .mobileCta {
   display: inline-flex;
-  justify-content: center;
-  padding: 12px 16px;
-  font-weight: 700;
-  color: #ffffff;
-  background: var(--k400-red);
+  width: 100%;
 }
 
 .content {
   flex: 1;
   width: 100%;
-  max-width: 1120px;
+  max-width: var(--home-container-max);
   margin: 0 auto;
-  padding: 20px 16px 48px;
+  padding: 20px var(--home-container-padding) 48px;
+}
+
+.contentHome {
+  max-width: none;
+  padding: 0;
+}
+
+.contentWide {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 20px var(--home-container-padding) 48px;
 }
 
 .footer {
-  background: #16324f;
+  background: var(--k400-navy);
   color: #ffffff;
-  padding: 32px 16px 40px;
+  padding: 40px var(--home-container-padding) 48px;
 }
 
 .footerInner {
-  max-width: 1120px;
+  max-width: var(--home-container-max);
   margin: 0 auto;
   display: flex;
   flex-direction: column;
-  gap: 28px;
+  gap: 32px;
 }
 
 .footerLogo {
   display: inline-flex;
-  padding: 10px;
+  padding: 12px 14px;
   background: #ffffff;
   width: fit-content;
 }
 
 .footerTitle {
-  margin: 0 0 12px;
+  margin: 0 0 14px;
   font-size: 13px;
   font-weight: 700;
   letter-spacing: 0.06em;
@@ -125,8 +185,9 @@
   list-style: none;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 10px;
   font-size: 14px;
+  line-height: 1.4;
 }
 
 .footerLink {
@@ -134,10 +195,11 @@
 }
 
 .support {
-  margin: 16px 0 0;
-  max-width: 28ch;
+  margin: 18px 0 0;
+  max-width: 34ch;
   font-size: 13px;
   line-height: 1.45;
+  color: rgba(255, 255, 255, 0.92);
 }
 
 .partners {
@@ -146,56 +208,63 @@
   list-style: none;
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 8px;
+  gap: 10px;
 }
 
 .partner {
   display: flex;
   align-items: center;
   justify-content: center;
-  min-height: 56px;
-  padding: 8px 10px;
+  min-height: 58px;
+  padding: 6px 8px;
   background: #ffffff;
 }
 
 .partnerLogo {
   display: block;
-  width: 100%;
-  height: 40px;
+  width: auto;
+  height: auto;
+  max-width: 88%;
+  max-height: 58px;
   object-fit: contain;
+  object-position: center;
 }
 
 .contactLabel {
-  margin: 0 0 6px;
+  margin: 0 0 8px;
   font-size: 13px;
 }
 
-.contact {
+.contact,
+.website {
   margin: 0;
   font-size: 14px;
   font-weight: 700;
 }
 
+.website {
+  margin-top: 10px;
+}
+
 @media (min-width: 768px) {
   .header {
-    padding: 16px 32px;
+    grid-template-columns: auto 1fr auto;
+    padding-block: 16px 19px;
+    gap: 32px;
   }
 
   .desktopNav {
     display: flex;
     align-items: center;
-    gap: 28px;
+    justify-content: center;
+    gap: clamp(24px, 3vw, 40px);
+    justify-self: center;
+    background: transparent;
   }
 
   .cta {
     display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    padding: 10px 18px;
-    font-size: 14px;
-    font-weight: 700;
-    color: #ffffff;
-    background: var(--k400-red);
+    justify-self: end;
   }
 
   .burger,
@@ -203,28 +272,37 @@
     display: none;
   }
 
-  .content {
-    padding: 32px 32px 64px;
+  .footer {
+    padding-block: 48px;
   }
 
-  .footer {
-    padding: 40px 32px 48px;
+  .partners {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (min-width: 1280px) {
+  .logoLink {
+    padding-left: 43px;
+  }
+
+  .cta {
+    width: 227px;
+    min-width: 227px;
+    height: 53px;
+    padding: 0 24px;
+    margin-right: -9px;
   }
 }
 
 @media (min-width: 1100px) {
   .footerInner {
     display: grid;
-    grid-template-columns: auto 1.1fr 1.4fr 0.9fr;
-    gap: 32px;
+    grid-template-columns: minmax(180px, 0.9fr) minmax(220px, 1fr) minmax(280px, 1.35fr) minmax(
+        180px,
+        0.85fr
+      );
+    gap: 36px;
     align-items: start;
-  }
-
-  .partners {
-    grid-template-columns: repeat(3, 1fr);
-  }
-
-  .support {
-    max-width: 32ch;
   }
 }

@@ -1,6 +1,7 @@
 import type { AdminDistrict } from '../../../features/taxonomy/types';
 import type { IdeaFormValues } from '../../../features/ideas/form';
 import type { TerritoryType } from '../../../features/ideas/types';
+import { IdeaGeoMapPicker } from './IdeaGeoMapPicker';
 import styles from './form.module.css';
 
 interface TerritorySectionProps {
@@ -73,15 +74,18 @@ export function PlaceSection({ values, onChange }: PlaceSectionProps) {
         <span className={styles.toggleLabel} id="specificPlaceLabel">
           Инициатива относится к конкретному месту
         </span>
-        <input
-          type="checkbox"
-          role="switch"
-          aria-labelledby="specificPlaceLabel"
-          checked={values.hasSpecificPlace}
-          onChange={(event) =>
-            onChange({ hasSpecificPlace: event.target.checked })
-          }
-        />
+        <label className={styles.toggleSwitch}>
+          <input
+            type="checkbox"
+            role="switch"
+            aria-labelledby="specificPlaceLabel"
+            checked={values.hasSpecificPlace}
+            onChange={(event) =>
+              onChange({ hasSpecificPlace: event.target.checked })
+            }
+          />
+          <span className={styles.toggleTrack} aria-hidden="true" />
+        </label>
       </div>
 
       {values.hasSpecificPlace && (
@@ -102,9 +106,11 @@ export function PlaceSection({ values, onChange }: PlaceSectionProps) {
 
           <div className={styles.field}>
             <span className={styles.label}>Геометка</span>
-            <div className={styles.placeholder}>
-              Интерактивная карта появится позже. Укажите координаты вручную.
-            </div>
+            <IdeaGeoMapPicker
+              latitude={values.latitude}
+              longitude={values.longitude}
+              onChange={onChange}
+            />
             <div className={styles.coords}>
               <div className={styles.field}>
                 <label className={styles.label} htmlFor="latitude">

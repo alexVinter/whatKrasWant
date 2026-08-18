@@ -5,10 +5,36 @@
   --k400-blue: #005AAA;
   --k400-burgundy: #B41E41;
 
-  /*
-   * Gold/beige tones are specified in the supplied short brandbook
-   * in CMYK only (25/40/60/5 and 10/15/30/0).
-   * Do not label an arbitrary RGB conversion as the official web value.
-   * For UI, prefer the approved web mockup value until an official RGB is supplied.
-   */
+  /* Approved mockup surfaces (desktop/mobile 01-home.png) */
+  --k400-beige: #F3EBDD;
+  --k400-beige-soft: #FAF6EF;
+  /* Top decorative stripe middle segment — from desktop 01-home.png */
+  --k400-gold: #D0AA7A;
+  --k400-navy: #16324F;
+  --k400-text: #1C2B3A;
+  --k400-text-muted: #6B7686;
+
+  /* Pixel targets @ 1865px page viewport — docs/cursor_visual_refs/desktop/01-home.png */
+  --home-container-max: 1680px;
+  --home-container-padding: 16px;
+  --home-section-gap: 48px;
+  --home-hero-title-size: 64px;
+  --home-hero-body-size: 18px;
+  --home-hero-body-line-height: 1.55;
+  --home-section-title-size: clamp(26px, 2.8vw, 36px);
+  --home-map-height: 400px;
+}
+
+@media (min-width: 768px) {
+  :root {
+    --home-container-padding: 24px;
+    --home-section-gap: 40px;
+  }
+}
+
+@media (min-width: 1280px) {
+  :root {
+    --home-container-padding: 0;
+    --home-section-gap: 36px;
+  }
 }

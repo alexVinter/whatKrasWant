@@ -1,0 +1,93 @@
+.header {
+  composes: container from './homeContainer.module.css';
+  margin-bottom: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.title {
+  margin: 0;
+  font-size: var(--home-section-title-size);
+  font-weight: 800;
+  line-height: 1.15;
+  color: var(--k400-blue);
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+.arrows {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.arrow {
+  box-sizing: border-box;
+  width: 32px;
+  height: 32px;
+  min-width: 32px;
+  min-height: 32px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  margin: 0;
+  border-radius: 50%;
+  border: 2px solid var(--k400-blue);
+  background: #ffffff;
+  color: var(--k400-blue);
+  cursor: pointer;
+  appearance: none;
+  -webkit-appearance: none;
+}
+
+.arrow:focus-visible {
+  outline: 2px solid var(--k400-blue);
+  outline-offset: 2px;
+}
+
+.arrowIcon {
+  display: block;
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+}
+
+.viewAll {
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1;
+  color: var(--k400-blue);
+  white-space: nowrap;
+}
+
+@media (min-width: 768px) {
+  .header {
+    margin-bottom: 28px;
+  }
+}
+
+@media (min-width: 1280px) {
+  .headerDesktopSlider .actions {
+    margin-right: 25px;
+    gap: 14px;
+  }
+
+  .headerDesktopSlider .arrows {
+    gap: 7px;
+  }
+
+  .arrow {
+    width: 34px;
+    height: 34px;
+    min-width: 34px;
+    min-height: 34px;
+  }
+}

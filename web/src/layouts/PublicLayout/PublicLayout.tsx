@@ -1,6 +1,7 @@
-import { useState } from 'react';
-import { Link, NavLink, Outlet, useLocation } from 'react-router-dom';
+import { useEffect, useState } from 'react';
+import { Link, Outlet, useLocation } from 'react-router-dom';
 import { BrandLogo } from '../../shared/ui/BrandLogo';
+import { usePublicConfig } from '../../features/public-config/queries';
 import {
   FOOTER_EMAIL,
   FOOTER_PARTNERS,
@@ -9,17 +10,72 @@ import {
 } from './footer';
 import styles from './PublicLayout.module.css';
 
-const NAV = [
-  { label: 'О проекте', to: '/' },
-  { label: 'Карта', to: '/' },
-  { label: 'Рейтинг инициатив', to: '/' },
-  { label: 'Новости', to: '/news' },
-];
+function sectionHref(id: string, onHome: boolean): string {
+  return onHome ? `#${id}` : `/#${id}`;
+}
+
+interface SubmitHeaderCtaProps {
+  enabled: boolean;
+  className: string;
+  onNavigate?: () => void;
+}
+
+function SubmitHeaderCta({ enabled, className, onNavigate }: SubmitHeaderCtaProps) {
+  if (enabled) {
+    return (
+      <Link to="/submit" className={className} onClick={onNavigate}>
+        Предложить идею
+      </Link>
+    );
+  }
+  return (
+    <button
+      type="button"
+      className={className}
+      disabled
+      aria-disabled="true"
+      onClick={onNavigate}
+    >
+      Предложить идею
+    </button>
+  );
+}
+
+const NAV_ITEMS = [
+  { label: 'О проекте', id: 'project' },
+  { label: 'Карта', id: 'map' },
+  { label: 'Рейтинг инициатив', id: 'rating' },
+  { label: 'Новости', id: 'news' },
+] as const;
 
 export function PublicLayout() {
   const location = useLocation();
+  const configQuery = usePublicConfig();
   const [menuOpen, setMenuOpen] = useState(false);
+  const onHome = location.pathname === '/';
   const newsActive = location.pathname.startsWith('/news');
+  const initiativesActive = location.pathname.startsWith('/initiatives');
+
+  const features = configQuery.data?.features;
+  const submissionEnabled = features?.PUBLIC_SUBMISSION ?? false;
+
+  useEffect(() => {
+    setMenuOpen(false);
+  }, [location.pathname, location.hash]);
+
+  const closeMenu = () => setMenuOpen(false);
+
+  const navClassName = (item: (typeof NAV_ITEMS)[number]) => {
+    const hash = location.hash;
+    const active =
+      (item.id === 'news' && (newsActive || (onHome && hash === '#news'))) ||
+      (item.id === 'map' && onHome && hash === '#map') ||
+      (item.id === 'rating' && onHome && hash === '#rating') ||
+      (item.id === 'project' &&
+        onHome &&
+        (hash === '' || hash === '#project'));
+    return `${styles.navLink} ${active ? styles.navLinkActive : ''}`;
+  };
 
   return (
     <div className={styles.shell}>
@@ -29,24 +85,17 @@ export function PublicLayout() {
           <BrandLogo variant="public" />
         </Link>
         <nav className={styles.desktopNav} aria-label="Разделы">
-          {NAV.map((item) => (
-            <NavLink
-              key={item.label}
-              to={item.to}
-              className={() =>
-                `${styles.navLink} ${
-                  item.to === '/news' && newsActive ? styles.navLinkActive : ''
-                }`
-              }
-              end={item.to === '/'}
+          {NAV_ITEMS.map((item) => (
+            <a
+              key={item.id}
+              href={sectionHref(item.id, onHome)}
+              className={navClassName(item)}
             >
               {item.label}
-            </NavLink>
+            </a>
           ))}
         </nav>
-        <Link to="/" className={styles.cta}>
-          Предложить идею
-        </Link>
+        <SubmitHeaderCta enabled={submissionEnabled} className={styles.cta} />
         <button
           type="button"
           className={styles.burger}
@@ -59,30 +108,33 @@ export function PublicLayout() {
           <span />
         </button>
       </header>
+      <div className={styles.headerDivider} aria-hidden="true" />
 
       {menuOpen && (
         <div className={styles.mobileMenu}>
-          {NAV.map((item) => (
-            <NavLink
-              key={item.label}
-              to={item.to}
+          {NAV_ITEMS.map((item) => (
+            <a
+              key={item.id}
+              href={sectionHref(item.id, onHome)}
               className={styles.mobileNavLink}
-              onClick={() => setMenuOpen(false)}
+              onClick={closeMenu}
             >
               {item.label}
-            </NavLink>
+            </a>
           ))}
-          <Link
-            to="/"
+          <SubmitHeaderCta
+            enabled={submissionEnabled}
             className={styles.mobileCta}
-            onClick={() => setMenuOpen(false)}
-          >
-            Предложить идею
-          </Link>
+            onNavigate={closeMenu}
+          />
         </div>
       )}
 
-      <div className={styles.content}>
+      <div
+        className={`${styles.content} ${onHome ? styles.contentHome : ''} ${
+          initiativesActive ? styles.contentWide : ''
+        }`}
+      >
         <Outlet />
       </div>
 
@@ -108,18 +160,8 @@ export function PublicLayout() {
             <h2 className={styles.footerTitle}>Партнёры</h2>
             <ul className={styles.partners}>
               {FOOTER_PARTNERS.map((partner) => (
-                <li
-                  key={partner.id}
-                  className={styles.partner}
-                  aria-label={partner.name}
-                >
-                  {partner.src ? (
-                    <img
-                      className={styles.partnerLogo}
-                      src={partner.src}
-                      alt=""
-                    />
-                  ) : null}
+                <li key={partner.id} className={styles.partner} aria-label={partner.name}>
+                  <img className={styles.partnerLogo} src={partner.src} alt="" />
                 </li>
               ))}
             </ul>

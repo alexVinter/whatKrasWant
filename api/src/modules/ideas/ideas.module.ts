@@ -9,5 +9,6 @@ import { IdeaImageService } from './idea-image.service';
   imports: [AdminAuthModule, AuditModule],
   controllers: [IdeasController],
   providers: [IdeasService, IdeaImageService],
+  exports: [IdeaImageService],
 })
 export class IdeasModule {}

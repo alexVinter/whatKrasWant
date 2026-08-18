@@ -239,6 +239,27 @@ export class IdeaImageService {
     return this.storage.getObject(key);
   }
 
+  async getPublicVariant(
+    slug: string,
+    variant: string,
+  ): Promise<StorageObject> {
+    if (variant !== 'optimized' && variant !== 'thumbnail') {
+      throw new NotFoundException('Image variant not found');
+    }
+    const idea = await this.prisma.idea.findUnique({
+      where: { slug },
+      include: { image: true },
+    });
+    if (!idea || idea.status !== 'PUBLISHED' || !idea.image) {
+      throw new NotFoundException('Image not found');
+    }
+    const key: string =
+      (variant as ImageVariant) === 'optimized'
+        ? idea.image.optimizedKey
+        : idea.image.thumbnailKey;
+    return this.storage.getObject(key);
+  }
+
   /**
    * Produces web-optimized and thumbnail buffers. `rotate()` bakes in the EXIF
    * orientation and, because metadata is not re-attached, sharp drops EXIF/GPS.

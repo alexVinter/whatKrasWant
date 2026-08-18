@@ -1,3 +1,10 @@
+import partnerArtstyle from '../../shared/brand/mockup/partners/artstyle.png';
+import partnerDelovayaRossiya from '../../shared/brand/mockup/partners/delovaya-rossiya.png';
+import partnerKrasnoyarskAdmin from '../../shared/brand/mockup/partners/krasnoyarsk-admin.png';
+import partnerProjectDevelopment from '../../shared/brand/mockup/partners/project-development.png';
+import partnerTv7 from '../../shared/brand/mockup/partners/tv7.png';
+import partnerYeniseiSiberia from '../../shared/brand/mockup/partners/yenisei-siberia.png';
+
 export const FOOTER_SUPPORT_PHRASE =
   'Проект реализуется при поддержке АНО „Краевой центр поддержки и развития общественных инициатив“';
 
@@ -11,19 +18,18 @@ export const FOOTER_USEFUL_LINKS = [
 export interface FooterPartner {
   id: string;
   name: string;
-  src: string | null;
+  src: string;
 }
 
-/**
- * Official partner logo files were not found in the repository.
- * Do not invent marks or fall back to visible names.
- * When a real asset is added, set `src` and the footer will render the image.
- */
 export const FOOTER_PARTNERS: FooterPartner[] = [
-  { id: 'tv7', name: '7 канал', src: null },
-  { id: 'yenisei-siberia', name: 'Енисейская Сибирь', src: null },
-  { id: 'delovaya-rossiya', name: 'Деловая Россия', src: null },
-  { id: 'artstyle', name: 'ArtStyle', src: null },
-  { id: 'project-development', name: 'Проект Девелопмент', src: null },
-  { id: 'krasnoyarsk-admin', name: 'Администрация города Красноярска', src: null },
+  { id: 'tv7', name: '7 канал', src: partnerTv7 },
+  { id: 'yenisei-siberia', name: 'Енисейская Сибирь', src: partnerYeniseiSiberia },
+  { id: 'delovaya-rossiya', name: 'Деловая Россия', src: partnerDelovayaRossiya },
+  { id: 'artstyle', name: 'ArtStyle', src: partnerArtstyle },
+  { id: 'project-development', name: 'Проект Девелопмент', src: partnerProjectDevelopment },
+  {
+    id: 'krasnoyarsk-admin',
+    name: 'Администрация города Красноярска',
+    src: partnerKrasnoyarskAdmin,
+  },
 ];

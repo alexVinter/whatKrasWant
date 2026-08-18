@@ -19,7 +19,8 @@
 }
 
 .public {
-  width: 118px;
+  width: auto;
+  height: 50px;
 }
 
 .footer {

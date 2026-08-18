@@ -83,41 +83,102 @@
   color: var(--color-text);
 }
 
+.toggleSwitch {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  flex-shrink: 0;
+  cursor: pointer;
+}
+
+.toggleSwitch input {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.toggleTrack {
+  position: relative;
+  display: block;
+  width: 38px;
+  height: 22px;
+  border-radius: 11px;
+  background: #c8cdd8;
+  transition: background-color 0.2s ease;
+}
+
+.toggleSwitch input:checked + .toggleTrack {
+  background: var(--color-primary);
+}
+
+.toggleTrack::after {
+  content: '';
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #ffffff;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.18);
+  transition: transform 0.2s ease;
+}
+
+.toggleSwitch input:checked + .toggleTrack::after {
+  transform: translateX(16px);
+}
+
+.toggleSwitch input:focus-visible + .toggleTrack {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
 .coords {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 12px;
 }
 
-/* Geo placeholder (interactive map = later). Image upload is live in E07. */
-.placeholder {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 120px;
-  padding: 16px;
-  font-size: 13px;
-  text-align: center;
-  color: var(--color-text-muted);
+/* Geo map picker */
+.geoMap {
+  width: 100%;
+  height: 190px;
+  overflow: hidden;
   background: var(--color-surface-muted);
-  border: 1px dashed var(--color-border);
+  border: 1px solid var(--color-border);
   border-radius: var(--radius-sm);
+}
+
+.geoMap .maplibregl-ctrl-top-left {
+  display: none;
 }
 
 .imageDrop {
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
-  min-height: 160px;
+  gap: 4px;
+  min-height: 120px;
   padding: 16px;
-  font-size: 14px;
-  font-weight: 600;
-  color: var(--color-primary);
   text-align: center;
   background: var(--color-surface-muted);
   border: 1px dashed var(--color-border);
   border-radius: var(--radius-sm);
   cursor: pointer;
+}
+
+.imageDropText {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-primary);
+}
+
+.imageDropHint {
+  font-size: 12px;
+  font-weight: 400;
+  color: var(--color-text-muted);
 }
 
 .imageDrop:hover {

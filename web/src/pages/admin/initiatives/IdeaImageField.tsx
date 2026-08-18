@@ -87,7 +87,8 @@ export function IdeaImageField({
         </div>
       ) : (
         <label className={styles.imageDrop}>
-          <span>Выберите JPG или PNG</span>
+          <span className={styles.imageDropText}>Выберите файл</span>
+          <span className={styles.imageDropHint}>JPG или PNG, до 10 МБ</span>
           <input
             ref={inputRef}
             className={styles.fileInput}

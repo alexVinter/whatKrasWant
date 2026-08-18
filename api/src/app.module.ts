@@ -7,6 +7,7 @@ import { CategoriesModule } from './modules/categories/categories.module';
 import { DistrictsModule } from './modules/districts/districts.module';
 import { HealthModule } from './modules/health/health.module';
 import { IdeasModule } from './modules/ideas/ideas.module';
+import { IdeasPublicModule } from './modules/ideas-public/ideas-public.module';
 import { PublicConfigModule } from './modules/public-config/public-config.module';
 import { SettingsModule } from './modules/settings/settings.module';
 import { StatisticsModule } from './modules/statistics/statistics.module';
@@ -24,6 +25,7 @@ import { StorageModule } from './storage/storage.module';
     CategoriesModule,
     DistrictsModule,
     IdeasModule,
+    IdeasPublicModule,
     PublicConfigModule,
     SettingsModule,
     StatisticsModule,

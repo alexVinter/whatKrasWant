@@ -1,7 +1,12 @@
 import { Route, Routes } from 'react-router-dom';
 import { RequireAdminAuth } from '../../features/admin-auth/RequireAdminAuth';
 import { AdminLayout } from '../../layouts/AdminLayout/AdminLayout';
+import { PublicLayout } from '../../layouts/PublicLayout/PublicLayout';
 import { PublicHomePage } from '../../pages/PublicHomePage/PublicHomePage';
+import { PublicInitiativesPage } from '../../pages/public/PublicInitiativesPage/PublicInitiativesPage';
+import { PublicInitiativeDetailPage } from '../../pages/public/PublicInitiativeDetailPage/PublicInitiativeDetailPage';
+import { PublicNewsPage } from '../../pages/public/PublicNewsPage/PublicNewsPage';
+import { PublicNewsDetailPage } from '../../pages/public/PublicNewsDetailPage/PublicNewsDetailPage';
 import { AdminLoginPage } from '../../pages/admin/AdminLoginPage/AdminLoginPage';
 import { AdminOverviewPage } from '../../pages/admin/AdminOverviewPage/AdminOverviewPage';
 import { AdminTaxonomyPage } from '../../pages/admin/AdminTaxonomyPage/AdminTaxonomyPage';
@@ -13,17 +18,16 @@ import { AdminSettingsPage } from '../../pages/admin/AdminSettingsPage/AdminSett
 import { AdminStatisticsPage } from '../../pages/admin/AdminStatisticsPage/AdminStatisticsPage';
 import { AdminNewsPage } from '../../pages/admin/AdminNewsPage/AdminNewsPage';
 import { AdminNewsFormPage } from '../../pages/admin/AdminNewsFormPage/AdminNewsFormPage';
-import { PublicLayout } from '../../layouts/PublicLayout/PublicLayout';
-import { PublicNewsPage } from '../../pages/public/PublicNewsPage/PublicNewsPage';
-import { PublicNewsDetailPage } from '../../pages/public/PublicNewsDetailPage/PublicNewsDetailPage';
 
 export function AppRouter() {
   return (
     <Routes>
-      <Route path="/" element={<PublicHomePage />} />
       <Route element={<PublicLayout />}>
+        <Route index element={<PublicHomePage />} />
         <Route path="/news" element={<PublicNewsPage />} />
         <Route path="/news/:slug" element={<PublicNewsDetailPage />} />
+        <Route path="/initiatives" element={<PublicInitiativesPage />} />
+        <Route path="/initiatives/:slug" element={<PublicInitiativeDetailPage />} />
       </Route>
       <Route path="/admin/login" element={<AdminLoginPage />} />
       <Route path="/admin" element={<RequireAdminAuth />}>

@@ -605,7 +605,7 @@ describe('admin initiatives', () => {
     expect(await screen.findByAltText('Изображение инициативы')).toBeInTheDocument();
     await userEvent.click(screen.getByRole('button', { name: 'Убрать' }));
     expect(screen.queryByAltText('Изображение инициативы')).not.toBeInTheDocument();
-    expect(screen.getByText('Выберите JPG или PNG')).toBeInTheDocument();
+    expect(screen.getByText('Выберите файл')).toBeInTheDocument();
   });
 
   it('creates the idea first and then uploads the image', async () => {
@@ -859,7 +859,7 @@ describe('admin initiatives', () => {
         ),
       ).toBe(true);
     });
-    expect(screen.getByText('Выберите JPG или PNG')).toBeInTheDocument();
+    expect(screen.getByText('Выберите файл')).toBeInTheDocument();
   });
 
   it('shows real summary counts on the overview', async () => {
