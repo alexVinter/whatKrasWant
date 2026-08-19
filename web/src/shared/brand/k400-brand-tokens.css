@@ -26,6 +26,12 @@
   --home-header-offset: 88px;
 }
 
+@media (max-width: 767px) {
+  :root {
+    --home-container-padding: 20px;
+  }
+}
+
 @media (min-width: 768px) {
   :root {
     --home-container-padding: 24px;

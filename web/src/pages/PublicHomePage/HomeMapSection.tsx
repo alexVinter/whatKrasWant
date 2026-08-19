@@ -36,7 +36,12 @@ export function HomeMapSection({
   return (
     <section id="map" className={styles.section} aria-labelledby="map-heading">
       <HomeSectionHeader
-        title="Инициативы на карте города"
+        title={
+          <>
+            <span className={styles.mapTitleMobile}>Инициативы на карте</span>
+            <span className={styles.mapTitleDesktop}>Инициативы на карте города</span>
+          </>
+        }
         titleId="map-heading"
         className={styles.mapHeader}
         titleClassName={styles.mapTitle}

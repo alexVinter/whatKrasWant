@@ -10,6 +10,10 @@ import {
 } from './config';
 import { createIdeaMarkerElement } from './createIdeaMarkerElement';
 import { createIdeaPopupElement } from './createIdeaPopupElement';
+import {
+  bindMobileIdeaMapPopupClamp,
+  createIdeaMapPopupOptions,
+} from './configureIdeaMapPopup';
 import { getActiveMapStyleProvider } from './providers';
 import './maplibreMap.css';
 
@@ -145,12 +149,10 @@ export function IdeasMapView({
           .addTo(map);
 
         if (showPopups) {
-          const popup = new Popup({
-            offset: 24,
-            closeButton: false,
-            maxWidth: '505px',
-            className: 'idea-map-popup-shell',
-          }).setDOMContent(createIdeaPopupElement(marker));
+          const popup = new Popup(createIdeaMapPopupOptions()).setDOMContent(
+            createIdeaPopupElement(marker),
+          );
+          bindMobileIdeaMapPopupClamp(popup, map);
           mapMarker.setPopup(popup);
         }
 

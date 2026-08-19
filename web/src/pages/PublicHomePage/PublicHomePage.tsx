@@ -19,6 +19,13 @@ import styles from './PublicHomePage.module.css';
 export const PROJECT_COPY =
   'Общественная инициатива, которая собирает идеи горожан о развитии Красноярска: жители предлагают проекты и голосуют за лучшие, а самые популярные передаются администрации города.';
 
+export const PROJECT_COPY_MOBILE_LINES = [
+  'Общественная инициатива, которая собирает идеи горожан о',
+  'развитии Красноярска: жители предлагают проекты и',
+  'голосуют за лучшие, а самые популярные передаются',
+  'администрации города.',
+] as const;
+
 interface SubmitCtaProps {
   enabled: boolean;
   className?: string;
@@ -65,14 +72,13 @@ export function PublicHomePage() {
               Красноярск?
             </h1>
             <p className={`${styles.heroText} homeMotionFadeUpDelay1`}>
-              <span className={styles.heroTextLine}>
-                Общественная инициатива, которая собирает идеи горожан о развитии
-              </span>
-              <span className={styles.heroTextLine}>
-                Красноярска: жители предлагают проекты и голосуют за лучшие, а
-              </span>
-              <span className={styles.heroTextLine}>
-                самые популярные передаются администрации города.
+              <span className={styles.heroTextFull}>{PROJECT_COPY}</span>
+              <span className={styles.heroTextMobile}>
+                {PROJECT_COPY_MOBILE_LINES.map((line) => (
+                  <span key={line} className={styles.heroTextLine}>
+                    {line}
+                  </span>
+                ))}
               </span>
             </p>
             <SubmitCta

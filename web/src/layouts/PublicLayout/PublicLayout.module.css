@@ -249,6 +249,22 @@
   margin-top: 10px;
 }
 
+@media (max-width: 767px) {
+  .logoLink img {
+    width: 75px;
+    height: auto;
+  }
+
+  .burger {
+    gap: 4px;
+  }
+
+  .burger span {
+    width: 24px;
+    height: 4px;
+  }
+}
+
 @media (min-width: 768px) {
   .header {
     grid-template-columns: auto 1fr auto;

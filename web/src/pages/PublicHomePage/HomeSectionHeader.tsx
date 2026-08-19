@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import styles from './HomeSectionHeader.module.css';
 
 interface HomeSectionHeaderProps {
-  title: string;
+  title: ReactNode;
   titleId: string;
   viewAllHref?: string;
   viewAllLabel?: string;

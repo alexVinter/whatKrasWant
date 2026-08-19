@@ -48,8 +48,16 @@ class MockMarker {
 }
 
 class MockPopup {
+  on() {
+    return this;
+  }
+
   setDOMContent() {
     return this;
+  }
+
+  getElement() {
+    return null;
   }
 }
 

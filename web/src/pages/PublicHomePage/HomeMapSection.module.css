@@ -86,8 +86,28 @@
   }
 }
 
+.mapTitleMobile {
+  display: none;
+}
+
 @media (max-width: 767px) {
   .mapCta {
     display: none;
+  }
+
+  .mapTitleMobile {
+    display: inline;
+  }
+
+  .mapTitleDesktop {
+    display: none;
+  }
+
+  .mapTitle {
+    margin-top: 30px;
+  }
+
+  .mapHeader {
+    margin-bottom: 8px;
   }
 }

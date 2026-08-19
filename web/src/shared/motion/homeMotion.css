@@ -105,3 +105,37 @@
     animation-delay: var(--home-card-reveal-delay, 0ms);
   }
 }
+
+@media (max-width: 767px) and (prefers-reduced-motion: no-preference) {
+  @keyframes homeHeroFadeUp {
+    from {
+      opacity: 0;
+      transform: translateY(15px);
+    }
+
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .homeMotionFadeUp {
+    animation: homeHeroFadeUp 600ms ease-out forwards;
+  }
+
+  .homeMotionFadeUpDelay1 {
+    animation: homeHeroFadeUp 600ms ease-out 80ms forwards;
+  }
+
+  .homeMotionFadeUpDelay2 {
+    animation: homeHeroFadeUp 600ms ease-out 160ms forwards;
+  }
+
+  .homeMotionFadeUpDelay3 {
+    animation: homeHeroFadeUp 600ms ease-out 240ms forwards;
+  }
+
+  .homeMotionSlideIn {
+    animation: homeHeroFadeUp 600ms ease-out 320ms forwards;
+  }
+}
