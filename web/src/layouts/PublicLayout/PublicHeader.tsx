@@ -99,56 +99,67 @@ export function PublicHeader({ menuOpen, onMenuToggle, onCloseMenu }: PublicHead
   return (
     <>
       <div className={styles.topStripe} aria-hidden="true" />
-      <header className={styles.header}>
-        <Link to="/" className={styles.logoLink} aria-label="На главную">
-          <BrandLogo variant="public" />
-        </Link>
-        <nav className={styles.desktopNav} aria-label="Разделы">
-          {NAV_ITEMS.map((item) => (
-            <a
-              key={item.id}
-              href={sectionHref(item.id, onHome)}
-              className={navClassName(item)}
-              onClick={(event) => handleSectionNav(event, item.id)}
-            >
-              {item.label}
-            </a>
-          ))}
-        </nav>
-        <SubmitHeaderCta enabled={submissionEnabled} className={styles.cta} />
-        <button
-          type="button"
-          className={styles.burger}
-          aria-label="Меню"
-          aria-expanded={menuOpen}
-          onClick={onMenuToggle}
-        >
-          <span />
-          <span />
-          <span />
-        </button>
-      </header>
-      <div className={styles.headerDivider} aria-hidden="true" />
+      <div className={styles.headerShell}>
+        <header className={styles.header}>
+          <div className={styles.headerBrand}>
+            <img
+              className={styles.headerDecor}
+              src="/images/header/header-left-wide.png"
+              alt=""
+              aria-hidden="true"
+              decoding="async"
+            />
+            <Link to="/" className={styles.logoLink} aria-label="На главную">
+              <BrandLogo variant="public" />
+            </Link>
+          </div>
+          <nav className={styles.desktopNav} aria-label="Разделы">
+            {NAV_ITEMS.map((item) => (
+              <a
+                key={item.id}
+                href={sectionHref(item.id, onHome)}
+                className={navClassName(item)}
+                onClick={(event) => handleSectionNav(event, item.id)}
+              >
+                {item.label}
+              </a>
+            ))}
+          </nav>
+          <SubmitHeaderCta enabled={submissionEnabled} className={styles.cta} />
+          <button
+            type="button"
+            className={styles.burger}
+            aria-label="Меню"
+            aria-expanded={menuOpen}
+            onClick={onMenuToggle}
+          >
+            <span />
+            <span />
+            <span />
+          </button>
+        </header>
 
-      {menuOpen && (
-        <div className={styles.mobileMenu}>
-          {NAV_ITEMS.map((item) => (
-            <a
-              key={item.id}
-              href={sectionHref(item.id, onHome)}
-              className={styles.mobileNavLink}
-              onClick={(event) => handleSectionNav(event, item.id)}
-            >
-              {item.label}
-            </a>
-          ))}
-          <SubmitHeaderCta
-            enabled={submissionEnabled}
-            className={styles.mobileCta}
-            onNavigate={onCloseMenu}
-          />
-        </div>
-      )}
+        {menuOpen && (
+          <div className={styles.mobileMenu}>
+            {NAV_ITEMS.map((item) => (
+              <a
+                key={item.id}
+                href={sectionHref(item.id, onHome)}
+                className={styles.mobileNavLink}
+                onClick={(event) => handleSectionNav(event, item.id)}
+              >
+                {item.label}
+              </a>
+            ))}
+            <SubmitHeaderCta
+              enabled={submissionEnabled}
+              className={styles.mobileCta}
+              onNavigate={onCloseMenu}
+            />
+          </div>
+        )}
+      </div>
+      <div className={styles.headerDivider} aria-hidden="true" />
     </>
   );
 }
