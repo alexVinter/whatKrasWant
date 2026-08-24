@@ -1,16 +1,24 @@
-# Frontend (Vite dev server) for the local development environment.
-FROM node:24-alpine
+# Build React application
+FROM node:24-alpine AS build
 
 WORKDIR /app
 
-# Install dependencies first for better layer caching.
 COPY package.json ./
+
 RUN npm install
 
-# Copy the rest of the source.
 COPY . .
 
-# Vite dev server port (overridable via WEB_PORT env at runtime).
-EXPOSE 5173
+RUN npm run build
 
-CMD ["npm", "run", "dev"]
+
+# Production static server
+FROM nginx:alpine
+
+COPY --from=build /app/dist /usr/share/nginx/html
+
+COPY nginx.conf /etc/nginx/conf.d/default.conf
+
+EXPOSE 80
+
+CMD ["nginx", "-g", "daemon off;"]
