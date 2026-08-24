@@ -39,3 +39,10 @@ Thumbs.db
 .npm/
 .eslintcache
 .cache/
+
+# Visual comparison/debug files
+docs/cursor_visual_refs/
+web/src/shared/brand/mockup/
+scripts/measure-*.py
+scripts/verify-*.py
+scripts/blend-overlay-from-cdp.py
