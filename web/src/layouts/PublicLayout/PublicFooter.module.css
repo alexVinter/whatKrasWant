@@ -1,30 +1,81 @@
 .footer {
-  background: var(--k400-navy);
-  color: #ffffff;
-  padding: 40px var(--home-container-padding) 48px;
+  --footer-bg: #1d2228;
+  --footer-heading-from: #bd976e;
+  --footer-heading-to: #e6d7ba;
+  --footer-text: rgba(255, 255, 255, 0.82);
+  --footer-text-muted: rgba(255, 255, 255, 0.56);
+  --footer-divider: rgba(255, 255, 255, 0.1);
+  --footer-partner-bg: rgba(255, 255, 255, 0.97);
+  --footer-partner-border: rgba(255, 255, 255, 0.12);
+  --footer-skyline-ratio: 5347 / 1763;
+
+  position: relative;
+  overflow: hidden;
+  background: var(--footer-bg);
+  color: var(--footer-text);
+  padding: 48px var(--home-container-padding) clamp(120px, 28vw, 180px);
+}
+
+.skyline {
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.skylineImage {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  object-position: bottom right;
 }
 
 .footerInner {
+  position: relative;
+  z-index: 1;
   max-width: var(--home-container-max);
   margin: 0 auto;
   display: flex;
   flex-direction: column;
-  gap: 32px;
+  gap: 36px;
+}
+
+.logoColumn {
+  display: flex;
+  flex-direction: column;
+}
+
+.section {
+  display: flex;
+  flex-direction: column;
 }
 
 .footerLogo {
   display: inline-flex;
-  padding: 12px 14px;
-  background: #ffffff;
+  padding: 14px 16px;
+  background: rgba(255, 255, 255, 0.98);
   width: fit-content;
+  border-radius: 4px;
+}
+
+.footerLogo img {
+  width: 92px;
 }
 
 .footerTitle {
-  margin: 0 0 14px;
-  font-size: 13px;
-  font-weight: 700;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
+  margin: 0 0 16px;
+  font-size: clamp(15px, 1.6vw, 18px);
+  font-weight: 300;
+  line-height: 1.35;
+  letter-spacing: 0.01em;
+  text-transform: none;
+  background: linear-gradient(
+    90deg,
+    var(--footer-heading-from) 0%,
+    var(--footer-heading-to) 100%
+  );
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
 }
 
 .footerList {
@@ -33,21 +84,23 @@
   list-style: none;
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 12px;
   font-size: 14px;
-  line-height: 1.4;
+  font-weight: 400;
+  line-height: 1.5;
 }
 
 .footerLink {
-  color: #ffffff;
+  color: var(--footer-text);
 }
 
 .support {
-  margin: 18px 0 0;
-  max-width: 34ch;
+  margin: 20px 0 0;
+  max-width: 38ch;
   font-size: 13px;
-  line-height: 1.45;
-  color: rgba(255, 255, 255, 0.92);
+  font-weight: 300;
+  line-height: 1.55;
+  color: var(--footer-text-muted);
 }
 
 .partners {
@@ -56,16 +109,18 @@
   list-style: none;
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 10px;
+  gap: 12px;
 }
 
 .partner {
   display: flex;
   align-items: center;
   justify-content: center;
-  min-height: 58px;
-  padding: 6px 8px;
-  background: #ffffff;
+  min-height: 56px;
+  padding: 8px 10px;
+  background: var(--footer-partner-bg);
+  border: 1px solid var(--footer-partner-border);
+  border-radius: 4px;
 }
 
 .partnerLogo {
@@ -73,45 +128,280 @@
   width: auto;
   height: auto;
   max-width: 88%;
-  max-height: 58px;
+  max-height: 54px;
   object-fit: contain;
   object-position: center;
 }
 
 .contactLabel {
-  margin: 0 0 8px;
+  margin: 0 0 10px;
   font-size: 13px;
+  font-weight: 300;
+  line-height: 1.45;
+  color: var(--footer-text-muted);
 }
 
 .contact,
 .website {
   margin: 0;
-  font-size: 14px;
-  font-weight: 700;
+  font-size: 15px;
+  font-weight: 500;
+  line-height: 1.4;
+  color: rgba(255, 255, 255, 0.94);
 }
 
 .website {
   margin-top: 10px;
 }
 
+@media (max-width: 767px) {
+  .footer {
+    padding-top: 56px;
+    padding-bottom: calc(clamp(96px, 27vw, 120px) + 12px);
+  }
+
+  .footerInner {
+    position: static;
+  }
+
+  .skyline {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: clamp(96px, 27vw, 120px);
+    z-index: 0;
+    overflow: hidden;
+  }
+
+  .skylineImage {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    max-width: none;
+    transform: none;
+    object-fit: contain;
+    object-position: bottom right;
+  }
+}
+
+@media (max-width: 1099px) {
+  .footerInner > :not(.skyline) + :not(.skyline) {
+    padding-top: 32px;
+    border-top: 1px solid var(--footer-divider);
+  }
+
+  .footerInner {
+    position: static;
+  }
+}
+
+@media (min-width: 768px) and (max-width: 1099px) {
+  .skyline {
+    position: absolute;
+    inset: auto 0 0;
+    z-index: 0;
+    left: 28%;
+    right: -6%;
+    height: clamp(120px, 10vw, 148px);
+  }
+
+  .skylineImage {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    transform: translateX(4%);
+    object-fit: cover;
+    object-position: bottom right;
+  }
+}
+
 @media (min-width: 768px) {
   .footer {
-    padding-block: 48px;
+    padding-block: 56px 52px;
+  }
+
+  .footerInner {
+    gap: 40px;
   }
 
   .partners {
     grid-template-columns: repeat(3, 1fr);
+    gap: 14px;
+  }
+
+  .partner {
+    min-height: 58px;
+    padding: 10px 12px;
+  }
+
+  .partnerLogo {
+    max-height: 56px;
   }
 }
 
 @media (min-width: 1100px) {
+  .footer {
+    padding-block: 56px 0;
+  }
+
   .footerInner {
     display: grid;
-    grid-template-columns: minmax(180px, 0.9fr) minmax(220px, 1fr) minmax(280px, 1.35fr) minmax(
-        180px,
-        0.85fr
-      );
-    gap: 36px;
+    grid-template-columns:
+      minmax(190px, 0.72fr)
+      minmax(480px, 2.2fr)
+      minmax(190px, 0.78fr);
+    grid-template-rows: auto auto;
+    grid-template-areas:
+      'logo partners contacts'
+      'links skyline skyline';
+    row-gap: clamp(20px, 2.2vw, 28px);
+    column-gap: 0;
     align-items: start;
+  }
+
+  .footerInner > :not(.skyline) + :not(.skyline) {
+    padding-top: 0;
+    border-top: none;
+  }
+
+  .logoColumn {
+    grid-area: logo;
+    align-self: center;
+    padding-right: clamp(16px, 2vw, 32px);
+  }
+
+  .footerLogo {
+    padding: 12px 14px;
+  }
+
+  .footerLogo img {
+    width: 100px;
+  }
+
+  .sectionLinks {
+    grid-area: links;
+    margin-top: 0;
+    padding-top: 0;
+    border-top: none;
+    max-width: 22rem;
+  }
+
+  .sectionLinks .footerTitle {
+    margin-bottom: 12px;
+  }
+
+  .sectionLinks .support {
+    margin-top: 14px;
+  }
+
+  .sectionPartners {
+    grid-area: partners;
+    padding-inline: clamp(24px, 2.4vw, 36px);
+    border-left: 1px solid var(--footer-divider);
+  }
+
+  .sectionContacts {
+    grid-area: contacts;
+    padding-inline: clamp(24px, 2.4vw, 36px);
+    border-left: 1px solid var(--footer-divider);
+  }
+
+  .sectionPartners .partners {
+    grid-template-columns: repeat(3, 1fr);
+    gap: clamp(12px, 1vw, 16px);
+  }
+
+  .sectionPartners .partner {
+    min-height: clamp(64px, 5.2vw, 76px);
+    padding: clamp(10px, 0.9vw, 14px) clamp(12px, 1vw, 16px);
+  }
+
+  .sectionPartners .partnerLogo {
+    max-height: clamp(56px, 4.2vw, 66px);
+    max-width: 92%;
+  }
+
+  .skyline {
+    grid-area: skyline;
+    position: relative;
+    z-index: 0;
+    width: 100%;
+    aspect-ratio: var(--footer-skyline-ratio);
+    max-height: clamp(210px, 17vw, 250px);
+    align-self: end;
+    justify-self: stretch;
+    margin-left: clamp(8px, 1vw, 16px);
+  }
+
+  .skylineImage {
+    transform: translateX(2%);
+  }
+}
+
+@media (min-width: 1440px) {
+  .footer {
+    padding-block: 56px 0;
+  }
+
+  .footerInner {
+    grid-template-columns:
+      minmax(200px, 0.68fr)
+      minmax(560px, 2.4fr)
+      minmax(200px, 0.82fr);
+    row-gap: 24px;
+  }
+
+  .sectionLinks {
+    max-width: 24rem;
+  }
+
+  .sectionPartners {
+    padding-inline: clamp(28px, 2.4vw, 40px);
+  }
+
+  .sectionPartners .partners {
+    gap: 16px;
+  }
+
+  .sectionPartners .partner {
+    min-height: 72px;
+    padding: 12px 16px;
+  }
+
+  .sectionPartners .partnerLogo {
+    max-height: 64px;
+  }
+
+  .sectionContacts {
+    padding-inline: clamp(28px, 2.4vw, 40px);
+  }
+
+  .skyline {
+    max-height: clamp(220px, 14vw, 260px);
+    margin-left: clamp(12px, 1.2vw, 20px);
+  }
+}
+
+@supports not (background-clip: text) {
+  .footerTitle {
+    color: var(--footer-heading-from);
+    background: none;
+  }
+}
+
+@supports not (aspect-ratio: 1 / 1) {
+  @media (min-width: 1100px) {
+    .skyline {
+      height: clamp(210px, 17vw, 250px);
+    }
+  }
+
+  @media (min-width: 1440px) {
+    .skyline {
+      height: clamp(220px, 14vw, 260px);
+    }
   }
 }
