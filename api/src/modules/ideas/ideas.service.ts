@@ -61,6 +61,7 @@ export class IdeasService {
         take: pageSize,
         include: {
           category: { select: { id: true, name: true } },
+          topic: { select: { id: true, name: true, slug: true } },
           districts: {
             include: { district: { select: { id: true, name: true } } },
           },
@@ -77,6 +78,7 @@ export class IdeasService {
         sourceType: row.sourceType,
         expertName: row.expertName,
         category: row.category,
+        topic: row.topic,
         territoryType: row.territoryType,
         districts: row.districts.map((d) => d.district),
         status: row.status,
@@ -103,6 +105,7 @@ export class IdeasService {
       where: { id },
       include: {
         category: { select: { id: true, name: true, isActive: true } },
+        topic: { select: { id: true, name: true, slug: true } },
         districts: {
           include: { district: { select: { id: true, name: true } } },
         },
@@ -124,6 +127,8 @@ export class IdeasService {
       description: idea.description,
       categoryId: idea.categoryId,
       category: idea.category,
+      topicId: idea.topicId,
+      topic: idea.topic,
       territoryType: idea.territoryType,
       districts: idea.districts.map((d) => d.district),
       districtIds: idea.districts.map((d) => d.district.id),
@@ -205,6 +210,9 @@ export class IdeasService {
         'Для публикации необходимо выбрать категорию.',
       );
     }
+    if (dto.topicId) {
+      await this.assertTopicExists(dto.topicId);
+    }
 
     const slug = await this.buildUniqueSlug(dto.title);
     const now = new Date();
@@ -220,6 +228,7 @@ export class IdeasService {
           title: dto.title,
           description: dto.description,
           categoryId: dto.categoryId ?? null,
+          topicId: dto.topicId ?? null,
           territoryType: dto.territoryType,
           address: placement.address,
           latitude: placement.latitude,
@@ -288,6 +297,8 @@ export class IdeasService {
       description: dto.description ?? existing.description,
       categoryId:
         dto.categoryId !== undefined ? dto.categoryId : existing.categoryId,
+      topicId:
+        dto.topicId !== undefined ? dto.topicId : existing.topicId,
       territoryType: dto.territoryType ?? existing.territoryType,
       hasSpecificPlace:
         dto.hasSpecificPlace !== undefined
@@ -315,6 +326,9 @@ export class IdeasService {
     if (next.categoryId) {
       await this.assertCategoryExists(next.categoryId, false);
     }
+    if (next.topicId) {
+      await this.assertTopicExists(next.topicId);
+    }
 
     const sortedNextDistrictIds = [...nextDistrictIds].sort();
     const districtsChanged =
@@ -327,6 +341,7 @@ export class IdeasService {
       next.title !== existing.title ||
       next.description !== existing.description ||
       next.categoryId !== existing.categoryId ||
+      next.topicId !== existing.topicId ||
       next.territoryType !== existing.territoryType ||
       placement.address !== existing.address ||
       placement.latitude !== existing.latitude ||
@@ -345,6 +360,7 @@ export class IdeasService {
           title: next.title,
           description: next.description,
           categoryId: next.categoryId,
+          topicId: next.topicId,
           territoryType: next.territoryType,
           address: placement.address,
           latitude: placement.latitude,
@@ -716,6 +732,18 @@ export class IdeasService {
     }
   }
 
+  private async assertTopicExists(topicId: string | null) {
+    if (!topicId) {
+      return;
+    }
+    const topic = await this.prisma.ideaTopic.findUnique({
+      where: { id: topicId },
+    });
+    if (!topic) {
+      throw new BadRequestException('Тема не найдена.');
+    }
+  }
+
   private async buildUniqueSlug(title: string): Promise<string> {
     const base = slugify(title);
     let slug = base;
@@ -732,6 +760,7 @@ export class IdeasService {
       title: string;
       description: string;
       categoryId: string | null;
+      topicId: string | null;
       territoryType: TerritoryType;
       address: string | null;
       latitude: number | null;
@@ -746,6 +775,7 @@ export class IdeasService {
       title: idea.title,
       description: idea.description,
       categoryId: idea.categoryId,
+      topicId: idea.topicId,
       territoryType: idea.territoryType,
       districtIds,
       address: idea.address,

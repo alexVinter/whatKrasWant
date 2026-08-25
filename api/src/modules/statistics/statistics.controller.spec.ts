@@ -141,6 +141,7 @@ class FakePrisma {
                   .name,
               }
             : null,
+          topic: null,
           districts: this.ideaDistricts
             .filter((row) => row.ideaId === idea.id)
             .map((row) => ({
@@ -179,6 +180,7 @@ function buildIdea(overrides: Partial<Idea> & { id: string; title: string }): Id
     expertOrg: 'TEST E10 Org',
     description: 'desc',
     categoryId: null,
+    topicId: null,
     territoryType: TerritoryType.CITYWIDE,
     address: null,
     latitude: null,
@@ -448,10 +450,11 @@ describe('StatisticsController (e2e)', () => {
     )!;
     expect(draftRow.getCell(2).value).toBe('Эксперт');
     expect(draftRow.getCell(5).value).toBe('Черновик');
-    expect(draftRow.getCell(6).value).toBe('Экология');
-    expect(draftRow.getCell(7).value).toBe('Весь город');
-    expect(draftRow.getCell(12).value).toBeInstanceOf(Date);
-    expect(draftRow.getCell(12).numFmt).toBe('dd.mm.yyyy hh:mm');
+    expect(draftRow.getCell(6).value).toBe('');
+    expect(draftRow.getCell(7).value).toBe('Экология');
+    expect(draftRow.getCell(8).value).toBe('Весь город');
+    expect(draftRow.getCell(13).value).toBeInstanceOf(Date);
+    expect(draftRow.getCell(13).numFmt).toBe('dd.mm.yyyy hh:mm');
 
     const authors = workbook.getWorksheet(XLSX_SHEETS.AUTHORS)!;
     const authorText = JSON.stringify(authors.getSheetValues());

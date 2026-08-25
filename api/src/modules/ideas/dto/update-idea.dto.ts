@@ -48,6 +48,10 @@ export class UpdateIdeaDto {
   categoryId?: string | null;
 
   @IsOptional()
+  @IsUUID()
+  topicId?: string | null;
+
+  @IsOptional()
   @IsEnum(TerritoryType)
   territoryType?: TerritoryType;
 

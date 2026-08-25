@@ -232,6 +232,7 @@ class FakePrisma {
         overrides.description ??
         'Описание тестовой инициативы E12 достаточно длинное для публикации и проверки публичного API.',
       categoryId: overrides.categoryId ?? 'cat-1',
+      topicId: overrides.topicId ?? null,
       territoryType: overrides.territoryType ?? TerritoryType.DISTRICTS,
       address: overrides.address ?? 'пр. Мира',
       latitude:

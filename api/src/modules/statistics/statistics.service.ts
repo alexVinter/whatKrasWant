@@ -156,6 +156,7 @@ export class StatisticsService {
         createdAt: true,
         publishedAt: true,
         category: { select: { name: true } },
+        topic: { select: { name: true } },
         districts: {
           select: { district: { select: { name: true } } },
         },

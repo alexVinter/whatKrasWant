@@ -18,6 +18,7 @@ const INITIATIVE_HEADERS = [
   'Имя эксперта',
   'Организация',
   'Статус',
+  'Тема идеи',
   'Категория',
   'Территория',
   'Адрес',
@@ -109,6 +110,7 @@ export class StatisticsXlsxService {
         idea.expertName ?? '',
         idea.expertOrg ?? '',
         STATUS_LABELS[idea.status],
+        idea.topic?.name ?? '',
         idea.category?.name ?? '',
         territoryText(idea),
         idea.address ?? '',
@@ -118,8 +120,8 @@ export class StatisticsXlsxService {
         idea.createdAt,
         idea.publishedAt,
       ]);
-      setDateCell(row.getCell(12), idea.createdAt);
-      setDateCell(row.getCell(13), idea.publishedAt);
+      setDateCell(row.getCell(13), idea.createdAt);
+      setDateCell(row.getCell(14), idea.publishedAt);
     }
   }
 
