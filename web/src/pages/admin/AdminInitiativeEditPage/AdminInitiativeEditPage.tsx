@@ -4,6 +4,7 @@ import {
   useAdminCategories,
   useAdminDistricts,
 } from '../../../features/taxonomy/queries';
+import { useAdminIdeaTopics } from '../../../features/idea-topics/queries';
 import {
   useIdea,
   useIdeaMutations,
@@ -44,6 +45,7 @@ export function AdminInitiativeEditPage() {
   const idea = useIdea(id);
   const revisions = useIdeaRevisions(id);
   const categories = useAdminCategories();
+  const topics = useAdminIdeaTopics();
   const districts = useAdminDistricts();
   const mutations = useIdeaMutations(id);
 
@@ -159,18 +161,37 @@ export function AdminInitiativeEditPage() {
 
       <div className={styles.columns}>
         <section className={styles.card}>
+          <div className={fieldStyles.field}>
+            <label className={fieldStyles.label} htmlFor="expertName">
+              Автор
+            </label>
+            <input
+              id="expertName"
+              className={fieldStyles.input}
+              value={values.expertName}
+              maxLength={200}
+              onChange={(event) => patch({ expertName: event.target.value })}
+            />
+          </div>
+
           <div className={styles.grid2}>
             <div className={fieldStyles.field}>
-              <label className={fieldStyles.label} htmlFor="expertName">
-                Автор
+              <label className={fieldStyles.label} htmlFor="topicId">
+                Тема идеи
               </label>
-              <input
-                id="expertName"
-                className={fieldStyles.input}
-                value={values.expertName}
-                maxLength={200}
-                onChange={(event) => patch({ expertName: event.target.value })}
-              />
+              <select
+                id="topicId"
+                className={fieldStyles.select}
+                value={values.topicId}
+                onChange={(event) => patch({ topicId: event.target.value })}
+              >
+                <option value="">Выберите тему</option>
+                {(topics.data ?? []).map((topic) => (
+                  <option key={topic.id} value={topic.id}>
+                    {topic.name}
+                  </option>
+                ))}
+              </select>
             </div>
 
             <div className={fieldStyles.field}>

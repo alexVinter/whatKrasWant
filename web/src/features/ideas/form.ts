@@ -11,6 +11,7 @@ export interface IdeaFormValues {
   title: string;
   description: string;
   categoryId: string;
+  topicId: string;
   territoryType: TerritoryType;
   districtIds: string[];
   hasSpecificPlace: boolean;
@@ -25,6 +26,7 @@ export const EMPTY_IDEA_FORM: IdeaFormValues = {
   title: '',
   description: '',
   categoryId: '',
+  topicId: '',
   territoryType: 'CITYWIDE',
   districtIds: [],
   hasSpecificPlace: false,
@@ -40,6 +42,7 @@ export function ideaToForm(idea: IdeaDetail): IdeaFormValues {
     title: idea.title,
     description: idea.description,
     categoryId: idea.categoryId ?? '',
+    topicId: idea.topicId ?? '',
     territoryType: idea.territoryType,
     districtIds: idea.districtIds,
     hasSpecificPlace: idea.hasSpecificPlace,
@@ -69,6 +72,7 @@ export function toCreateInput(
     title: values.title.trim(),
     description: values.description.trim(),
     categoryId: values.categoryId || null,
+    topicId: values.topicId || null,
     territoryType: values.territoryType,
     districtIds:
       values.territoryType === 'DISTRICTS' ? values.districtIds : undefined,
@@ -91,6 +95,7 @@ export function toUpdateInput(
     title: values.title.trim(),
     description: values.description.trim(),
     categoryId: values.categoryId || null,
+    topicId: values.topicId || null,
     territoryType: values.territoryType,
     districtIds:
       values.territoryType === 'DISTRICTS' ? values.districtIds : undefined,

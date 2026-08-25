@@ -33,6 +33,10 @@ function installMock(options?: { loggedIn?: boolean; failImage?: boolean }) {
     { id: 'd1', name: 'Центральный', sortOrder: 1, isActive: true, createdAt: now, updatedAt: now },
     { id: 'd2', name: 'Советский', sortOrder: 2, isActive: true, createdAt: now, updatedAt: now },
   ];
+  const ideaTopics = [
+    { id: 't1', name: 'Благоустройство', slug: 'improvement' },
+    { id: 't2', name: 'Экология', slug: 'ecology' },
+  ];
 
   interface StoredIdea {
     id: string;
@@ -44,6 +48,7 @@ function installMock(options?: { loggedIn?: boolean; failImage?: boolean }) {
     title: string;
     description: string;
     categoryId: string | null;
+    topicId: string | null;
     territoryType: 'DISTRICTS' | 'CITYWIDE';
     districtIds: string[];
     hasSpecificPlace: boolean;
@@ -74,6 +79,7 @@ function installMock(options?: { loggedIn?: boolean; failImage?: boolean }) {
       description:
         'Описание существующей инициативы, достаточно длинное для валидации ровно.',
       categoryId: 'c1',
+      topicId: 't1',
       territoryType: 'CITYWIDE',
       districtIds: [],
       hasSpecificPlace: false,
@@ -99,6 +105,9 @@ function installMock(options?: { loggedIn?: boolean; failImage?: boolean }) {
   const category = (id: string | null) =>
     id ? categories.find((c) => c.id === id) ?? null : null;
 
+  const topic = (id: string | null) =>
+    id ? ideaTopics.find((t) => t.id === id) ?? null : null;
+
   const listItem = (idea: StoredIdea) => ({
     id: idea.id,
     publicNumber: idea.publicNumber,
@@ -108,6 +117,7 @@ function installMock(options?: { loggedIn?: boolean; failImage?: boolean }) {
     category: category(idea.categoryId)
       ? { id: idea.categoryId, name: category(idea.categoryId)!.name }
       : null,
+    topic: topic(idea.topicId),
     territoryType: idea.territoryType,
     districts: idea.districtIds.map((did) => ({
       id: did,
@@ -122,6 +132,7 @@ function installMock(options?: { loggedIn?: boolean; failImage?: boolean }) {
     category: category(idea.categoryId)
       ? { id: idea.categoryId, name: category(idea.categoryId)!.name, isActive: true }
       : null,
+    topic: topic(idea.topicId),
     districts: idea.districtIds.map((did) => ({
       id: did,
       name: districts.find((d) => d.id === did)!.name,
@@ -158,6 +169,9 @@ function installMock(options?: { loggedIn?: boolean; failImage?: boolean }) {
       }
       if (path.endsWith('/api/admin/categories')) {
         return jsonResponse(categories, 200);
+      }
+      if (path.endsWith('/api/admin/idea-topics')) {
+        return jsonResponse(ideaTopics, 200);
       }
       if (path.endsWith('/api/admin/districts')) {
         return jsonResponse(districts, 200);
@@ -256,6 +270,8 @@ function installMock(options?: { loggedIn?: boolean; failImage?: boolean }) {
             description: body.description ?? idea.description,
             categoryId:
               body.categoryId !== undefined ? body.categoryId : idea.categoryId,
+            topicId:
+              body.topicId !== undefined ? body.topicId : idea.topicId,
           });
           addRevision(idea, body.reason || 'Инициатива изменена');
           return jsonResponse(detail(idea), 200);
@@ -276,6 +292,7 @@ function installMock(options?: { loggedIn?: boolean; failImage?: boolean }) {
             title: body.title,
             description: body.description,
             categoryId: body.categoryId ?? null,
+            topicId: body.topicId ?? null,
             territoryType: body.territoryType,
             districtIds: body.districtIds ?? [],
             hasSpecificPlace: body.hasSpecificPlace ?? false,
@@ -399,6 +416,7 @@ describe('admin initiatives', () => {
     renderApp('/admin/initiatives/new');
 
     expect(await screen.findByRole('option', { name: 'Транспорт' })).toBeInTheDocument();
+    expect(await screen.findByRole('option', { name: 'Благоустройство' })).toBeInTheDocument();
 
     await userEvent.selectOptions(screen.getByLabelText('Территория'), 'DISTRICTS');
     expect(await screen.findByLabelText('Центральный')).toBeInTheDocument();
@@ -485,6 +503,24 @@ describe('admin initiatives', () => {
     installMock();
     renderApp('/admin/initiatives/i1');
     expect(await screen.findByText('Инициатива создана')).toBeInTheDocument();
+  });
+
+  it('loads the saved topic on the edit page and sends topicId in PATCH', async () => {
+    const { calls } = installMock();
+    renderApp('/admin/initiatives/i1');
+
+    const topicSelect = await screen.findByLabelText('Тема идеи');
+    expect(topicSelect).toHaveValue('t1');
+
+    await userEvent.selectOptions(topicSelect, 't2');
+    await userEvent.click(screen.getByRole('button', { name: 'Сохранить' }));
+
+    await waitFor(() => {
+      const patch = calls.find(
+        (c) => c.method === 'PATCH' && c.url.endsWith('/api/admin/ideas/i1'),
+      );
+      expect(patch?.body.topicId).toBe('t2');
+    });
   });
 
   it('saves edits via PATCH', async () => {
