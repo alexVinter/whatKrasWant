@@ -2,6 +2,12 @@ export type IdeaStatus = 'DRAFT' | 'MODERATION' | 'PUBLISHED' | 'ARCHIVED';
 export type TerritoryType = 'DISTRICTS' | 'CITYWIDE';
 export type SourceType = 'EXPERT' | 'RESIDENT';
 
+export interface IdeaTopicRef {
+  id: string;
+  name: string;
+  slug: string;
+}
+
 export interface IdeaListItem {
   id: string;
   publicNumber: number;
@@ -9,6 +15,7 @@ export interface IdeaListItem {
   sourceType: SourceType;
   expertName: string | null;
   category: { id: string; name: string } | null;
+  topic: IdeaTopicRef | null;
   territoryType: TerritoryType;
   districts: { id: string; name: string }[];
   status: IdeaStatus;
@@ -39,6 +46,8 @@ export interface IdeaDetail {
   description: string;
   categoryId: string | null;
   category: { id: string; name: string; isActive: boolean } | null;
+  topicId: string | null;
+  topic: IdeaTopicRef | null;
   territoryType: TerritoryType;
   districts: { id: string; name: string }[];
   districtIds: string[];
@@ -76,6 +85,7 @@ export interface CreateIdeaInput {
   title: string;
   description: string;
   categoryId?: string | null;
+  topicId?: string | null;
   territoryType: TerritoryType;
   districtIds?: string[];
   hasSpecificPlace: boolean;
@@ -90,6 +100,7 @@ export interface UpdateIdeaInput {
   title?: string;
   description?: string;
   categoryId?: string | null;
+  topicId?: string | null;
   territoryType?: TerritoryType;
   districtIds?: string[];
   hasSpecificPlace?: boolean;

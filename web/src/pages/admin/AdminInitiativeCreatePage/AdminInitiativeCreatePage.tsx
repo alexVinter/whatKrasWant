@@ -4,6 +4,7 @@ import {
   useAdminCategories,
   useAdminDistricts,
 } from '../../../features/taxonomy/queries';
+import { useAdminIdeaTopics } from '../../../features/idea-topics/queries';
 import { useCreateIdea } from '../../../features/ideas/queries';
 import { uploadIdeaImage } from '../../../features/ideas/api';
 import {
@@ -25,6 +26,7 @@ import styles from './AdminInitiativeCreatePage.module.css';
 export function AdminInitiativeCreatePage() {
   const navigate = useNavigate();
   const categories = useAdminCategories();
+  const topics = useAdminIdeaTopics();
   const districts = useAdminDistricts();
   const createIdea = useCreateIdea();
 
@@ -126,6 +128,25 @@ export function AdminInitiativeCreatePage() {
               maxLength={3000}
               onChange={(event) => patch({ description: event.target.value })}
             />
+          </div>
+
+          <div className={fieldStyles.field}>
+            <label className={fieldStyles.label} htmlFor="topicId">
+              Тема идеи
+            </label>
+            <select
+              id="topicId"
+              className={fieldStyles.select}
+              value={values.topicId}
+              onChange={(event) => patch({ topicId: event.target.value })}
+            >
+              <option value="">Выберите тему</option>
+              {(topics.data ?? []).map((topic) => (
+                <option key={topic.id} value={topic.id}>
+                  {topic.name}
+                </option>
+              ))}
+            </select>
           </div>
 
           <div className={fieldStyles.field}>
