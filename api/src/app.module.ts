@@ -6,6 +6,7 @@ import { AuditModule } from './modules/audit/audit.module';
 import { CategoriesModule } from './modules/categories/categories.module';
 import { DistrictsModule } from './modules/districts/districts.module';
 import { HealthModule } from './modules/health/health.module';
+import { IdeaTopicsModule } from './modules/idea-topics/idea-topics.module';
 import { IdeasModule } from './modules/ideas/ideas.module';
 import { IdeasPublicModule } from './modules/ideas-public/ideas-public.module';
 import { PublicConfigModule } from './modules/public-config/public-config.module';
@@ -23,6 +24,7 @@ import { StorageModule } from './storage/storage.module';
     AdminAuthModule,
     AuditModule,
     CategoriesModule,
+    IdeaTopicsModule,
     DistrictsModule,
     IdeasModule,
     IdeasPublicModule,

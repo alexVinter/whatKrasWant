@@ -17,6 +17,7 @@ import type {
   Idea,
   IdeaImage,
   IdeaRevision,
+  IdeaTopic,
 } from '@prisma/client';
 import { PrismaService } from '../../database/prisma.service';
 import { StorageService } from '../../storage/storage.service';
@@ -82,6 +83,7 @@ class FakePrisma {
   admins: AdminUser[] = [];
   sessions: AdminSession[] = [];
   categories: Category[] = [];
+  ideaTopics: IdeaTopic[] = [];
   districts: District[] = [];
   ideas: Idea[] = [];
   ideaDistricts: IdeaDistrictRow[] = [];
@@ -123,6 +125,13 @@ class FakePrisma {
       Promise.resolve(this.categories.find((c) => c.id === args.where.id) ?? null),
   };
 
+  ideaTopic = {
+    findUnique: (args: { where: { id: string } }): Promise<IdeaTopic | null> =>
+      Promise.resolve(
+        this.ideaTopics.find((t) => t.id === args.where.id) ?? null,
+      ),
+  };
+
   district = {
     findMany: (args: {
       where?: { id?: { in?: string[] } };
@@ -140,6 +149,10 @@ class FakePrisma {
     if (include?.category) {
       result.category =
         this.categories.find((c) => c.id === idea.categoryId) ?? null;
+    }
+    if (include?.topic) {
+      result.topic =
+        this.ideaTopics.find((t) => t.id === idea.topicId) ?? null;
     }
     if (include?.districts) {
       result.districts = this.ideaDistricts
@@ -206,6 +219,7 @@ class FakePrisma {
         title: args.data.title,
         description: args.data.description,
         categoryId: args.data.categoryId ?? null,
+        topicId: args.data.topicId ?? null,
         territoryType: args.data.territoryType,
         address: args.data.address ?? null,
         latitude: args.data.latitude ?? null,

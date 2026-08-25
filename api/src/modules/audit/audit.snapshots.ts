@@ -19,6 +19,7 @@ export interface IdeaAuditFields {
   expertName: string | null;
   expertOrg: string | null;
   categoryId: string | null;
+  topicId: string | null;
   territoryType: TerritoryType;
   address: string | null;
   latitude: number | null;
@@ -40,6 +41,7 @@ export function ideaAuditSnapshot(
     expertName: idea.expertName,
     expertOrg: idea.expertOrg,
     categoryId: idea.categoryId,
+    topicId: idea.topicId,
     territoryType: idea.territoryType,
     districtIds,
     address: idea.address,
