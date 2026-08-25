@@ -199,11 +199,11 @@
   .logoLink {
     position: relative;
     z-index: 1;
-    padding-left: 10px;
+    padding-left: 2px;
   }
 
   .logoLink img {
-    width: 64px;
+    width: 58px;
     height: auto;
     filter: brightness(0) invert(1);
   }
