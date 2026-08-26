@@ -36,18 +36,18 @@ export const FOOTER_PARTNERS: FooterPartner[] = [
     src: partnerEnisib,
     theme: 'dark',
   },
+  { id: 'artstyle', name: 'ArtStyle', src: partnerArtstyle },
+  {
+    id: 'delovaya-rossiya',
+    name: 'Деловая Россия',
+    src: partnerDelovayaRossiya,
+  },
   {
     id: 'tv7',
     name: '7 канал',
     src: partnerMoyKrasnoyarsk,
     theme: 'dark',
   },
-  {
-    id: 'delovaya-rossiya',
-    name: 'Деловая Россия',
-    src: partnerDelovayaRossiya,
-  },
-  { id: 'artstyle', name: 'ArtStyle', src: partnerArtstyle },
   {
     id: 'project-development',
     name: 'Проект Девелопмент',

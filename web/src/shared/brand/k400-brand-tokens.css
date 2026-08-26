@@ -37,15 +37,22 @@
 
 @media (min-width: 768px) {
   :root {
-    --home-container-padding: 24px;
+    /* Laptop/tablet landscape: avoid the previous 24px-only band up to 1280px. */
+    --home-container-padding: clamp(28px, 2.8vw, 40px);
     --home-section-gap: 40px;
   }
 }
 
 @media (min-width: 1280px) {
   :root {
-    --home-container-padding: clamp(40px, 4.2vw, 72px);
+    --home-container-padding: clamp(36px, 3.6vw, 56px);
     --home-section-gap: 36px;
     --home-header-offset: 96px;
+  }
+}
+
+@media (min-width: 1536px) {
+  :root {
+    --home-container-padding: clamp(40px, 4.2vw, 72px);
   }
 }
