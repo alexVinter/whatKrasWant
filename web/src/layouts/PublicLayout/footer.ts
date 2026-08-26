@@ -1,9 +1,9 @@
-import partnerArtstyle from '../../shared/brand/mockup/partners/artstyle.png';
-import partnerDelovayaRossiya from '../../shared/brand/mockup/partners/delovaya-rossiya.png';
-import partnerKrasnoyarskAdmin from '../../shared/brand/mockup/partners/krasnoyarsk-admin.png';
-import partnerProjectDevelopment from '../../shared/brand/mockup/partners/project-development.png';
-import partnerTv7 from '../../shared/brand/mockup/partners/tv7.png';
-import partnerYeniseiSiberia from '../../shared/brand/partners/enisib.png';
+import partnerAdministration from '../../shared/brand/partners/administration.png';
+import partnerArtstyle from '../../shared/brand/partners/artstyle.svg';
+import partnerDelovayaRossiya from '../../shared/brand/partners/delovaya-rossiya.svg';
+import partnerEnisib from '../../shared/brand/partners/enisib.png';
+import partnerMoyKrasnoyarsk from '../../shared/brand/partners/moy-krasnoyarsk.png';
+import partnerProektdevelopment from '../../shared/brand/partners/proektdevelopment.png';
 
 export const FOOTER_SUPPORT_PHRASE =
   'Проект реализуется при поддержке АНО „Краевой центр поддержки и развития общественных инициатив“';
@@ -28,20 +28,29 @@ export const FOOTER_PARTNERS: FooterPartner[] = [
   {
     id: 'krasnoyarsk-admin',
     name: 'Администрация города Красноярска',
-    src: partnerKrasnoyarskAdmin,
+    src: partnerAdministration,
   },
   {
     id: 'yenisei-siberia',
     name: 'Енисейская Сибирь',
-    src: partnerYeniseiSiberia,
+    src: partnerEnisib,
     theme: 'dark',
   },
-  { id: 'tv7', name: '7 канал', src: partnerTv7 },
-  { id: 'delovaya-rossiya', name: 'Деловая Россия', src: partnerDelovayaRossiya },
+  {
+    id: 'tv7',
+    name: '7 канал',
+    src: partnerMoyKrasnoyarsk,
+    theme: 'dark',
+  },
+  {
+    id: 'delovaya-rossiya',
+    name: 'Деловая Россия',
+    src: partnerDelovayaRossiya,
+  },
   { id: 'artstyle', name: 'ArtStyle', src: partnerArtstyle },
   {
     id: 'project-development',
     name: 'Проект Девелопмент',
-    src: partnerProjectDevelopment,
+    src: partnerProektdevelopment,
   },
 ];
