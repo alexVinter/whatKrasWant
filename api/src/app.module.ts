@@ -3,7 +3,6 @@ import { ConfigModule } from '@nestjs/config';
 import { PrismaModule } from './database/prisma.module';
 import { AdminAuthModule } from './modules/admin-auth/admin-auth.module';
 import { AuditModule } from './modules/audit/audit.module';
-import { CategoriesModule } from './modules/categories/categories.module';
 import { DistrictsModule } from './modules/districts/districts.module';
 import { HealthModule } from './modules/health/health.module';
 import { IdeaTopicsModule } from './modules/idea-topics/idea-topics.module';
@@ -23,7 +22,6 @@ import { StorageModule } from './storage/storage.module';
     HealthModule,
     AdminAuthModule,
     AuditModule,
-    CategoriesModule,
     IdeaTopicsModule,
     DistrictsModule,
     IdeasModule,

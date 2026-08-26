@@ -96,6 +96,17 @@
   color: var(--color-text);
 }
 
+.description {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  overflow: hidden;
+  font-size: 13px;
+  line-height: 1.4;
+  color: var(--color-text-muted);
+}
+
 .votes {
   font-size: 14px;
   font-weight: 700;

@@ -38,9 +38,6 @@ export class IdeasService {
     if (query.status) {
       where.status = query.status;
     }
-    if (query.categoryId) {
-      where.categoryId = query.categoryId;
-    }
     if (query.search) {
       where.OR = [
         { title: { contains: query.search, mode: 'insensitive' } },
@@ -60,7 +57,6 @@ export class IdeasService {
         skip: (page - 1) * pageSize,
         take: pageSize,
         include: {
-          category: { select: { id: true, name: true } },
           topic: { select: { id: true, name: true, slug: true } },
           districts: {
             include: { district: { select: { id: true, name: true } } },
@@ -77,7 +73,6 @@ export class IdeasService {
         title: row.title,
         sourceType: row.sourceType,
         expertName: row.expertName,
-        category: row.category,
         topic: row.topic,
         territoryType: row.territoryType,
         districts: row.districts.map((d) => d.district),
@@ -104,7 +99,6 @@ export class IdeasService {
     const idea = await this.prisma.idea.findUnique({
       where: { id },
       include: {
-        category: { select: { id: true, name: true, isActive: true } },
         topic: { select: { id: true, name: true, slug: true } },
         districts: {
           include: { district: { select: { id: true, name: true } } },
@@ -125,8 +119,6 @@ export class IdeasService {
       expertOrg: idea.expertOrg,
       title: idea.title,
       description: idea.description,
-      categoryId: idea.categoryId,
-      category: idea.category,
       topicId: idea.topicId,
       topic: idea.topic,
       territoryType: idea.territoryType,
@@ -203,13 +195,6 @@ export class IdeasService {
       dto.districtIds,
       willPublish,
     );
-    if (dto.categoryId) {
-      await this.assertCategoryExists(dto.categoryId, willPublish);
-    } else if (willPublish) {
-      throw new BadRequestException(
-        'Для публикации необходимо выбрать категорию.',
-      );
-    }
     if (dto.topicId) {
       await this.assertTopicExists(dto.topicId);
     }
@@ -227,7 +212,6 @@ export class IdeasService {
           expertOrg: dto.expertOrg ?? null,
           title: dto.title,
           description: dto.description,
-          categoryId: dto.categoryId ?? null,
           topicId: dto.topicId ?? null,
           territoryType: dto.territoryType,
           address: placement.address,
@@ -295,8 +279,6 @@ export class IdeasService {
         dto.expertOrg !== undefined ? dto.expertOrg : existing.expertOrg,
       title: dto.title ?? existing.title,
       description: dto.description ?? existing.description,
-      categoryId:
-        dto.categoryId !== undefined ? dto.categoryId : existing.categoryId,
       topicId:
         dto.topicId !== undefined ? dto.topicId : existing.topicId,
       territoryType: dto.territoryType ?? existing.territoryType,
@@ -323,9 +305,6 @@ export class IdeasService {
       districtIdsInput,
       false,
     );
-    if (next.categoryId) {
-      await this.assertCategoryExists(next.categoryId, false);
-    }
     if (next.topicId) {
       await this.assertTopicExists(next.topicId);
     }
@@ -340,7 +319,6 @@ export class IdeasService {
       next.expertOrg !== existing.expertOrg ||
       next.title !== existing.title ||
       next.description !== existing.description ||
-      next.categoryId !== existing.categoryId ||
       next.topicId !== existing.topicId ||
       next.territoryType !== existing.territoryType ||
       placement.address !== existing.address ||
@@ -359,7 +337,6 @@ export class IdeasService {
           expertOrg: next.expertOrg,
           title: next.title,
           description: next.description,
-          categoryId: next.categoryId,
           topicId: next.topicId,
           territoryType: next.territoryType,
           address: placement.address,
@@ -431,7 +408,6 @@ export class IdeasService {
     }
 
     this.assertLengths(existing.title, existing.description);
-    await this.assertCategoryExists(existing.categoryId, true);
 
     const districtIds = existing.districts.map((d) => d.districtId);
     await this.resolveDistrictIds(existing.territoryType, districtIds, true);
@@ -710,28 +686,6 @@ export class IdeasService {
     return [...new Set(ids)];
   }
 
-  private async assertCategoryExists(
-    categoryId: string | null,
-    requireActive: boolean,
-  ) {
-    if (!categoryId) {
-      throw new BadRequestException(
-        'Для публикации необходимо выбрать категорию.',
-      );
-    }
-    const category = await this.prisma.category.findUnique({
-      where: { id: categoryId },
-    });
-    if (!category) {
-      throw new BadRequestException('Категория не найдена.');
-    }
-    if (requireActive && !category.isActive) {
-      throw new BadRequestException(
-        'Категория неактивна. Выберите активную категорию.',
-      );
-    }
-  }
-
   private async assertTopicExists(topicId: string | null) {
     if (!topicId) {
       return;
@@ -759,7 +713,6 @@ export class IdeasService {
     idea: {
       title: string;
       description: string;
-      categoryId: string | null;
       topicId: string | null;
       territoryType: TerritoryType;
       address: string | null;
@@ -774,7 +727,6 @@ export class IdeasService {
     return {
       title: idea.title,
       description: idea.description,
-      categoryId: idea.categoryId,
       topicId: idea.topicId,
       territoryType: idea.territoryType,
       districtIds,

@@ -16,7 +16,6 @@ import {
 import type {
   AdminSession,
   AdminUser,
-  Category,
   District,
   Idea,
 } from '@prisma/client';
@@ -46,7 +45,6 @@ interface IdeaDistrictRow {
 class FakePrisma {
   admins: AdminUser[] = [];
   sessions: AdminSession[] = [];
-  categories: Category[] = [];
   districts: District[] = [];
   ideas: Idea[] = [];
   ideaDistricts: IdeaDistrictRow[] = [];
@@ -69,9 +67,6 @@ class FakePrisma {
     if (where.status && idea.status !== where.status) return false;
     if (where.territoryType && idea.territoryType !== where.territoryType) {
       return false;
-    }
-    if (Object.prototype.hasOwnProperty.call(where, 'categoryId')) {
-      if (idea.categoryId !== where.categoryId) return false;
     }
     if (where.latitude?.not === null && idea.latitude === null) return false;
     if (where.longitude?.not === null && idea.longitude === null) return false;
@@ -135,12 +130,6 @@ class FakePrisma {
           longitude: idea.longitude,
           createdAt: idea.createdAt,
           publishedAt: idea.publishedAt,
-          category: this.categories.find((c) => c.id === idea.categoryId)
-            ? {
-                name: this.categories.find((c) => c.id === idea.categoryId)!
-                  .name,
-              }
-            : null,
           topic: null,
           districts: this.ideaDistricts
             .filter((row) => row.ideaId === idea.id)
@@ -159,11 +148,6 @@ class FakePrisma {
       this.groupBy(this.ideaDistricts, args.by),
   };
 
-  category = {
-    findMany: (): Promise<{ id: string; name: string }[]> =>
-      Promise.resolve(this.categories.map((c) => ({ id: c.id, name: c.name }))),
-  };
-
   district = {
     findMany: (): Promise<{ id: string; name: string }[]> =>
       Promise.resolve(this.districts.map((d) => ({ id: d.id, name: d.name }))),
@@ -179,7 +163,6 @@ function buildIdea(overrides: Partial<Idea> & { id: string; title: string }): Id
     expertName: 'TEST E10 Expert',
     expertOrg: 'TEST E10 Org',
     description: 'desc',
-    categoryId: null,
     topicId: null,
     territoryType: TerritoryType.CITYWIDE,
     address: null,
@@ -220,32 +203,6 @@ describe('StatisticsController (e2e)', () => {
       createdAt: now,
       revokedAt: null,
     });
-    prisma.categories.push(
-      {
-        id: 'c1',
-        name: 'Экология',
-        slug: 'ekologiya',
-        description: null,
-        icon: null,
-        color: null,
-        sortOrder: 1,
-        isActive: true,
-        createdAt: now,
-        updatedAt: now,
-      },
-      {
-        id: 'c2',
-        name: 'Транспорт',
-        slug: 'transport',
-        description: null,
-        icon: null,
-        color: null,
-        sortOrder: 2,
-        isActive: true,
-        createdAt: now,
-        updatedAt: now,
-      },
-    );
     prisma.districts.push(
       {
         id: 'd1',
@@ -271,14 +228,12 @@ describe('StatisticsController (e2e)', () => {
         id: 'draft-1',
         title: 'TEST E10 DRAFT',
         status: IdeaStatus.DRAFT,
-        categoryId: 'c1',
         territoryType: TerritoryType.CITYWIDE,
       }),
       buildIdea({
         id: 'published-1',
         title: 'TEST E10 PUBLISHED',
         status: IdeaStatus.PUBLISHED,
-        categoryId: 'c2',
         territoryType: TerritoryType.DISTRICTS,
         latitude: 56.01,
         longitude: 92.87,
@@ -288,7 +243,6 @@ describe('StatisticsController (e2e)', () => {
         id: 'archived-1',
         title: 'TEST E10 ARCHIVED',
         status: IdeaStatus.ARCHIVED,
-        categoryId: 'c1',
         territoryType: TerritoryType.DISTRICTS,
       }),
     );
@@ -369,31 +323,6 @@ describe('StatisticsController (e2e)', () => {
     expect(res.body.withLocation).toBe(1);
   });
 
-  it('aggregates by category without assigning uncategorized ideas', async () => {
-    prisma.ideas.push(
-      buildIdea({
-        id: 'no-cat',
-        title: 'TEST E10 NO CATEGORY',
-        categoryId: null,
-      }),
-    );
-    const res = await request(server())
-      .get('/admin/statistics')
-      .set('Cookie', AUTH_COOKIE)
-      .expect(200);
-
-    expect(res.body.uncategorized).toBe(1);
-    expect(
-      res.body.byCategory.map((row: { name: string; count: number }) => ({
-        name: row.name,
-        count: row.count,
-      })),
-    ).toEqual([
-      { name: 'Экология', count: 2 },
-      { name: 'Транспорт', count: 1 },
-    ]);
-  });
-
   it('counts CITYWIDE as Весь город and multi-district ideas in each district', async () => {
     const res = await request(server())
       .get('/admin/statistics')
@@ -451,10 +380,10 @@ describe('StatisticsController (e2e)', () => {
     expect(draftRow.getCell(2).value).toBe('Эксперт');
     expect(draftRow.getCell(5).value).toBe('Черновик');
     expect(draftRow.getCell(6).value).toBe('');
-    expect(draftRow.getCell(7).value).toBe('Экология');
-    expect(draftRow.getCell(8).value).toBe('Весь город');
-    expect(draftRow.getCell(13).value).toBeInstanceOf(Date);
-    expect(draftRow.getCell(13).numFmt).toBe('dd.mm.yyyy hh:mm');
+    expect(draftRow.getCell(7).value).toBe('Весь город');
+    expect(draftRow.getCell(12).value).toBeInstanceOf(Date);
+    expect(draftRow.getCell(12).numFmt).toBe('dd.mm.yyyy hh:mm');
+    expect(draftRow.getCell(13).value).toBe('');
 
     const authors = workbook.getWorksheet(XLSX_SHEETS.AUTHORS)!;
     const authorText = JSON.stringify(authors.getSheetValues());
@@ -487,7 +416,6 @@ describe('StatisticsController (e2e)', () => {
     );
     expect(stats).toContain('Экспертные инициативы');
     expect(stats).toContain('С геометкой');
-    expect(stats).toContain('Экология');
     expect(stats).toContain('Весь город');
     expect(stats).toContain('Советский');
   });

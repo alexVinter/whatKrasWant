@@ -10,7 +10,6 @@ export interface IdeaFormValues {
   expertOrg: string;
   title: string;
   description: string;
-  categoryId: string;
   topicId: string;
   territoryType: TerritoryType;
   districtIds: string[];
@@ -25,7 +24,6 @@ export const EMPTY_IDEA_FORM: IdeaFormValues = {
   expertOrg: '',
   title: '',
   description: '',
-  categoryId: '',
   topicId: '',
   territoryType: 'CITYWIDE',
   districtIds: [],
@@ -41,7 +39,6 @@ export function ideaToForm(idea: IdeaDetail): IdeaFormValues {
     expertOrg: idea.expertOrg ?? '',
     title: idea.title,
     description: idea.description,
-    categoryId: idea.categoryId ?? '',
     topicId: idea.topicId ?? '',
     territoryType: idea.territoryType,
     districtIds: idea.districtIds,
@@ -71,7 +68,6 @@ export function toCreateInput(
     expertOrg: values.expertOrg.trim() || undefined,
     title: values.title.trim(),
     description: values.description.trim(),
-    categoryId: values.categoryId || null,
     topicId: values.topicId || null,
     territoryType: values.territoryType,
     districtIds:
@@ -94,7 +90,6 @@ export function toUpdateInput(
     expertOrg: values.expertOrg.trim(),
     title: values.title.trim(),
     description: values.description.trim(),
-    categoryId: values.categoryId || null,
     topicId: values.topicId || null,
     territoryType: values.territoryType,
     districtIds:
@@ -113,10 +108,7 @@ export function toUpdateInput(
  * Client-side pre-validation mirroring the backend rules. Returns the first
  * human-readable error, or null when the form is valid for the given action.
  */
-export function validateIdeaForm(
-  values: IdeaFormValues,
-  forPublish: boolean,
-): string | null {
+export function validateIdeaForm(values: IdeaFormValues): string | null {
   const title = values.title.trim();
   if (title.length < 10 || title.length > 150) {
     return 'Название должно быть от 10 до 150 символов.';
@@ -138,9 +130,6 @@ export function validateIdeaForm(
     ) {
       return 'Укажите координаты геометки (широта и долгота).';
     }
-  }
-  if (forPublish && !values.categoryId) {
-    return 'Для публикации необходимо выбрать категорию.';
   }
   return null;
 }

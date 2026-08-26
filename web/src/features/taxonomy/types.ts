@@ -1,13 +1,3 @@
-export interface AdminCategory {
-  id: string;
-  name: string;
-  slug: string;
-  sortOrder: number;
-  isActive: boolean;
-  createdAt: string;
-  updatedAt: string;
-}
-
 export interface AdminDistrict {
   id: string;
   name: string;
@@ -24,7 +14,6 @@ export interface TaxonomyInput {
 }
 
 export interface PublicConfig {
-  categories: { id: string; name: string; slug: string }[];
   districts: { id: string; name: string }[];
   features: {
     PUBLIC_CATALOG: boolean;

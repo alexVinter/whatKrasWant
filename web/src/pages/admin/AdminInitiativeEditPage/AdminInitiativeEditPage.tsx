@@ -1,9 +1,6 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useLocation, useParams } from 'react-router-dom';
-import {
-  useAdminCategories,
-  useAdminDistricts,
-} from '../../../features/taxonomy/queries';
+import { useAdminDistricts } from '../../../features/taxonomy/queries';
 import { useAdminIdeaTopics } from '../../../features/idea-topics/queries';
 import {
   useIdea,
@@ -44,12 +41,12 @@ export function AdminInitiativeEditPage() {
   const location = useLocation();
   const idea = useIdea(id);
   const revisions = useIdeaRevisions(id);
-  const categories = useAdminCategories();
   const topics = useAdminIdeaTopics();
   const districts = useAdminDistricts();
   const mutations = useIdeaMutations(id);
 
   const [values, setValues] = useState<IdeaFormValues>(EMPTY_IDEA_FORM);
+  const [dirty, setDirty] = useState(false);
   const [reason, setReason] = useState('');
   const [pendingFile, setPendingFile] = useState<File | null>(null);
   const [error, setError] = useState<string | null>(
@@ -62,10 +59,10 @@ export function AdminInitiativeEditPage() {
   const loadedId = idea.data?.id;
   const loadedAt = idea.data?.updatedAt;
 
-  // Sync the form from the server on first load and after each successful
-  // mutation (updatedAt changes) without clobbering in-progress edits.
+  // Sync from the server on first open and after successful server refresh,
+  // but never clobber unsaved edits (e.g. topic change before Save/Publish).
   useEffect(() => {
-    if (idea.data) {
+    if (idea.data && !dirty) {
       setValues(ideaToForm(idea.data));
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -73,13 +70,24 @@ export function AdminInitiativeEditPage() {
 
   const patch = (next: Partial<IdeaFormValues>) => {
     setValues((current) => ({ ...current, ...next }));
+    setDirty(true);
     setError(null);
   };
+
+  const detailOrNull = idea.data;
+  const topicOptions = useMemo(() => {
+    const items = topics.data ?? [];
+    const current = detailOrNull?.topic;
+    if (current && !items.some((topic) => topic.id === current.id)) {
+      return [current, ...items];
+    }
+    return items;
+  }, [topics.data, detailOrNull?.topic]);
 
   if (idea.isLoading) {
     return <p className={styles.state}>Загрузка…</p>;
   }
-  if (idea.isError || !idea.data) {
+  if (idea.isError || !detailOrNull) {
     return (
       <p className={styles.stateError} role="alert">
         Инициатива не найдена. Обновите страницу.
@@ -87,12 +95,11 @@ export function AdminInitiativeEditPage() {
     );
   }
 
-  const detail = idea.data;
+  const detail = detailOrNull;
   const previewUrl = resolveImagePreview(
     localPreviewUrl,
     detail.image?.url ?? null,
   );
-  const activeCategories = (categories.data ?? []).filter((c) => c.isActive);
   const busy =
     mutations.save.isPending ||
     mutations.publish.isPending ||
@@ -110,16 +117,24 @@ export function AdminInitiativeEditPage() {
     setPendingFile(null);
   };
 
-  const save = async () => {
-    const validationError = validateIdeaForm(values, false);
+  const persistForm = async () => {
+    const validationError = validateIdeaForm(values);
     if (validationError) {
       setError(validationError);
-      return;
+      throw validationError;
     }
+    await mutations.save.mutateAsync(toUpdateInput(values, reason));
+    setReason('');
+    setDirty(false);
+  };
+
+  const save = async () => {
     try {
-      await mutations.save.mutateAsync(toUpdateInput(values, reason));
-      setReason('');
+      await persistForm();
     } catch (mutationError) {
+      if (typeof mutationError === 'string') {
+        return;
+      }
       setError(humanizeIdeaError(mutationError));
       return;
     }
@@ -134,16 +149,23 @@ export function AdminInitiativeEditPage() {
     action: 'publish' | 'unpublish' | 'archive' | 'restore',
   ) => {
     if (action === 'publish') {
-      const validationError = validateIdeaForm(values, true);
+      const validationError = validateIdeaForm(values);
       if (validationError) {
         setError(validationError);
         return;
       }
     }
     try {
+      if (dirty) {
+        await persistForm();
+      }
       await persistPendingImage();
       await mutations[action].mutateAsync();
+      setDirty(false);
     } catch (mutationError) {
+      if (typeof mutationError === 'string') {
+        return;
+      }
       setError(
         pendingFile
           ? humanizeImageError(mutationError)
@@ -174,44 +196,29 @@ export function AdminInitiativeEditPage() {
             />
           </div>
 
-          <div className={styles.grid2}>
-            <div className={fieldStyles.field}>
-              <label className={fieldStyles.label} htmlFor="topicId">
-                Тема идеи
-              </label>
-              <select
-                id="topicId"
-                className={fieldStyles.select}
-                value={values.topicId}
-                onChange={(event) => patch({ topicId: event.target.value })}
-              >
-                <option value="">Выберите тему</option>
-                {(topics.data ?? []).map((topic) => (
-                  <option key={topic.id} value={topic.id}>
-                    {topic.name}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div className={fieldStyles.field}>
-              <label className={fieldStyles.label} htmlFor="categoryId">
-                Категория
-              </label>
-              <select
-                id="categoryId"
-                className={fieldStyles.select}
-                value={values.categoryId}
-                onChange={(event) => patch({ categoryId: event.target.value })}
-              >
-                <option value="">Выберите категорию</option>
-                {activeCategories.map((category) => (
-                  <option key={category.id} value={category.id}>
-                    {category.name}
-                  </option>
-                ))}
-              </select>
-            </div>
+          <div className={fieldStyles.field}>
+            <label className={fieldStyles.label} htmlFor="topicId">
+              Тема идеи
+            </label>
+            <select
+              id="topicId"
+              className={fieldStyles.select}
+              value={values.topicId}
+              disabled={busy}
+              onChange={(event) => patch({ topicId: event.target.value })}
+            >
+              <option value="">Выберите тему</option>
+              {topicOptions.map((topic) => (
+                <option key={topic.id} value={topic.id}>
+                  {topic.name}
+                </option>
+              ))}
+            </select>
+            {topics.isError && (
+              <p className={fieldStyles.hint} role="alert">
+                Не удалось загрузить список тем. Обновите страницу.
+              </p>
+            )}
           </div>
 
           <div className={fieldStyles.field}>

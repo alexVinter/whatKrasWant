@@ -78,8 +78,7 @@
   }
 
   .mapWrap {
-    width: calc(100% - 26px);
-    margin-left: 26px;
+    width: 100%;
     height: auto;
     min-height: 0;
     aspect-ratio: 1655 / 742;
@@ -91,6 +90,17 @@
 }
 
 @media (max-width: 767px) {
+  .mapContainer.mapContainer {
+    width: 100%;
+    max-width: none;
+    padding-inline: 0;
+  }
+
+  .mapWrap {
+    border-left: none;
+    border-right: none;
+  }
+
   .mapCta {
     display: none;
   }

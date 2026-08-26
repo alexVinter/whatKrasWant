@@ -14,6 +14,7 @@ export interface MockRatingCard {
   previewImage: string;
   authorName: string;
   title: string;
+  description: string;
   voteCount: number;
 }
 
@@ -30,6 +31,8 @@ export const MOCK_RATING_CARDS: MockRatingCard[] = [
     previewImage: ratingMap1,
     authorName: 'Имя Фамилия',
     title: 'Арт-объект «Слияние» на Стрелке',
+    description:
+      'Скульптурная композиция на слиянии Енисея и Качи, которая станет новой точкой притяжения для жителей и гостей города.',
     voteCount: 345,
   },
   {
@@ -37,6 +40,8 @@ export const MOCK_RATING_CARDS: MockRatingCard[] = [
     previewImage: ratingMap2,
     authorName: 'Имя Фамилия',
     title: 'Пешеходный проспект Мира по выходным',
+    description:
+      'В выходные дни центральная улица закрывается для машин, чтобы на проспекте появились прогулки, ярмарки и уличные события.',
     voteCount: 198,
   },
   {
@@ -44,6 +49,8 @@ export const MOCK_RATING_CARDS: MockRatingCard[] = [
     previewImage: ratingMap3,
     authorName: 'Имя Фамилия',
     title: 'Выделенная полоса на ул. Партизана Железняка',
+    description:
+      'Отдельная полоса для общественного транспорта сократит время в пути и сделает поездки по району предсказуемее.',
     voteCount: 173,
   },
   {
@@ -51,6 +58,8 @@ export const MOCK_RATING_CARDS: MockRatingCard[] = [
     previewImage: ratingMap4,
     authorName: 'Имя Фамилия',
     title: 'Маршрут вдоль поймы реки Кача',
+    description:
+      'Непрерывный прогулочный маршрут вдоль реки с освещением, лавочками и удобными спусками к воде.',
     voteCount: 156,
   },
 ];

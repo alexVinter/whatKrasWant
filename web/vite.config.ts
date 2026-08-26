@@ -11,6 +11,13 @@ export default defineConfig({
     host: true,
     port,
     strictPort: true,
+    proxy: {
+      '/api': {
+        target: `http://localhost:${process.env.API_PORT ?? 3000}`,
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/api/, ''),
+      },
+    },
   },
   test: {
     environment: 'jsdom',

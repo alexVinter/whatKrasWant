@@ -14,6 +14,7 @@ import {
 type IdeaListRow = {
   slug: string;
   title: string;
+  description: string;
   expertName: string | null;
   territoryType: TerritoryType;
   address: string | null;
@@ -52,6 +53,7 @@ export class PublicIdeasService {
         select: {
           slug: true,
           title: true,
+          description: true,
           expertName: true,
           territoryType: true,
           address: true,
@@ -146,6 +148,7 @@ export class PublicIdeasService {
     return {
       slug: row.slug,
       title: row.title,
+      description: row.description,
       authorName: this.authorName(row.expertName),
       publishedAt: row.publishedAt,
       territory: this.listTerritory(row),

@@ -110,6 +110,21 @@
   color: var(--k400-text);
 }
 
+.description {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  line-clamp: 3;
+  overflow: hidden;
+  flex-grow: 1;
+  min-height: calc(1.45em * 3);
+  padding: 8px 16px 0;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 1.45;
+  color: var(--k400-text-muted);
+}
+
 .votes {
   margin-top: auto;
   padding: 12px 16px 18px;

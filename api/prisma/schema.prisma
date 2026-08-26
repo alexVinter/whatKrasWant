@@ -69,23 +69,6 @@ model AdminSession {
   @@map("admin_sessions")
 }
 
-model Category {
-  id          String   @id @default(uuid())
-  name        String
-  slug        String   @unique
-  description String?
-  icon        String?
-  color       String?
-  sortOrder   Int      @map("sort_order")
-  isActive    Boolean  @default(true) @map("is_active")
-  createdAt   DateTime @default(now()) @map("created_at")
-  updatedAt   DateTime @updatedAt @map("updated_at")
-
-  ideas Idea[]
-
-  @@map("categories")
-}
-
 model IdeaTopic {
   id        String   @id @default(uuid())
   name      String
@@ -123,7 +106,6 @@ model Idea {
   expertOrg     String?        @map("expert_org")
   title         String
   description   String
-  categoryId    String?        @map("category_id")
   territoryType TerritoryType  @map("territory_type")
   address       String?
   latitude      Float?
@@ -135,7 +117,6 @@ model Idea {
   createdAt     DateTime       @default(now()) @map("created_at")
   updatedAt     DateTime       @updatedAt @map("updated_at")
 
-  category  Category?      @relation(fields: [categoryId], references: [id])
   topicId   String?        @map("topic_id")
   topic     IdeaTopic?     @relation(fields: [topicId], references: [id])
   districts IdeaDistrict[]

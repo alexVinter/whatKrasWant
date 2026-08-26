@@ -2,27 +2,10 @@ import 'reflect-metadata';
 import { INestApplication } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 import request from 'supertest';
-import type { Category, District, SystemSetting } from '@prisma/client';
+import type { District, SystemSetting } from '@prisma/client';
 import { PrismaService } from '../../database/prisma.service';
 import { PublicConfigController } from './public-config.controller';
 import { PublicConfigService } from './public-config.service';
-
-function buildCategory(overrides: Partial<Category>): Category {
-  const now = new Date();
-  return {
-    id: `cat-${Math.random().toString(36).slice(2)}`,
-    name: 'Category',
-    slug: `slug-${Math.random().toString(36).slice(2)}`,
-    description: null,
-    icon: null,
-    color: null,
-    sortOrder: 1,
-    isActive: true,
-    createdAt: now,
-    updatedAt: now,
-    ...overrides,
-  };
-}
 
 function buildDistrict(overrides: Partial<District>): District {
   const now = new Date();
@@ -39,24 +22,8 @@ function buildDistrict(overrides: Partial<District>): District {
 }
 
 class FakePrisma {
-  categories: Category[] = [];
   districts: District[] = [];
   settings: SystemSetting[] = [];
-
-  category = {
-    findMany: (args: {
-      where?: { isActive?: boolean };
-    }): Promise<Category[]> => {
-      const filtered = this.categories.filter(
-        (c) => args.where?.isActive === undefined || c.isActive === args.where.isActive,
-      );
-      return Promise.resolve(
-        filtered.sort(
-          (a, b) => a.sortOrder - b.sortOrder || a.name.localeCompare(b.name),
-        ),
-      );
-    },
-  };
 
   district = {
     findMany: (args: {
@@ -92,11 +59,6 @@ describe('PublicConfigController (e2e)', () => {
 
   beforeEach(async () => {
     prisma = new FakePrisma();
-    prisma.categories.push(
-      buildCategory({ name: 'Активная A', slug: 'active-a', sortOrder: 2, isActive: true }),
-      buildCategory({ name: 'Активная B', slug: 'active-b', sortOrder: 1, isActive: true }),
-      buildCategory({ name: 'Отключённая', slug: 'hidden', sortOrder: 3, isActive: false }),
-    );
     prisma.districts.push(
       buildDistrict({ name: 'Активный', sortOrder: 1, isActive: true }),
       buildDistrict({ name: 'Отключённый', sortOrder: 2, isActive: false }),
@@ -129,26 +91,17 @@ describe('PublicConfigController (e2e)', () => {
     await request(server()).get('/public/config').expect(200);
   });
 
-  it('excludes inactive categories and districts', async () => {
+  it('excludes inactive districts', async () => {
     const res = await request(server()).get('/public/config').expect(200);
-
-    const categoryNames = res.body.categories.map((c: { name: string }) => c.name);
-    expect(categoryNames).toEqual(['Активная B', 'Активная A']);
-    expect(categoryNames).not.toContain('Отключённая');
 
     const districtNames = res.body.districts.map((d: { name: string }) => d.name);
     expect(districtNames).toEqual(['Активный']);
     expect(districtNames).not.toContain('Отключённый');
   });
 
-  it('does not expose internal category fields or district geometry', async () => {
+  it('does not expose district geometry', async () => {
     const res = await request(server()).get('/public/config').expect(200);
 
-    expect(Object.keys(res.body.categories[0]).sort()).toEqual([
-      'id',
-      'name',
-      'slug',
-    ]);
     expect(Object.keys(res.body.districts[0]).sort()).toEqual(['id', 'name']);
   });
 

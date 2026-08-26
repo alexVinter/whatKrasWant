@@ -12,7 +12,6 @@ import { AdminStatus } from '@prisma/client';
 import type {
   AdminSession,
   AdminUser,
-  Category,
   District,
   Idea,
   IdeaImage,
@@ -82,7 +81,6 @@ interface IdeaDistrictRow {
 class FakePrisma {
   admins: AdminUser[] = [];
   sessions: AdminSession[] = [];
-  categories: Category[] = [];
   ideaTopics: IdeaTopic[] = [];
   districts: District[] = [];
   ideas: Idea[] = [];
@@ -120,11 +118,6 @@ class FakePrisma {
     },
   };
 
-  category = {
-    findUnique: (args: { where: { id: string } }): Promise<Category | null> =>
-      Promise.resolve(this.categories.find((c) => c.id === args.where.id) ?? null),
-  };
-
   ideaTopic = {
     findUnique: (args: { where: { id: string } }): Promise<IdeaTopic | null> =>
       Promise.resolve(
@@ -146,10 +139,6 @@ class FakePrisma {
 
   private attachIncludes(idea: Idea, include?: Record<string, unknown>) {
     const result: Record<string, unknown> = { ...idea };
-    if (include?.category) {
-      result.category =
-        this.categories.find((c) => c.id === idea.categoryId) ?? null;
-    }
     if (include?.topic) {
       result.topic =
         this.ideaTopics.find((t) => t.id === idea.topicId) ?? null;
@@ -172,7 +161,6 @@ class FakePrisma {
   private matches(idea: Idea, where?: Record<string, any>): boolean {
     if (!where) return true;
     if (where.status && idea.status !== where.status) return false;
-    if (where.categoryId && idea.categoryId !== where.categoryId) return false;
     if (where.territoryType && idea.territoryType !== where.territoryType) {
       return false;
     }
@@ -218,7 +206,6 @@ class FakePrisma {
         expertOrg: args.data.expertOrg ?? null,
         title: args.data.title,
         description: args.data.description,
-        categoryId: args.data.categoryId ?? null,
         topicId: args.data.topicId ?? null,
         territoryType: args.data.territoryType,
         address: args.data.address ?? null,
@@ -391,23 +378,6 @@ class FakePrisma {
   };
 }
 
-function buildCategory(overrides: Partial<Category>): Category {
-  const now = new Date();
-  return {
-    id: randomUUID(),
-    name: 'Category',
-    slug: nextId('slug'),
-    description: null,
-    icon: null,
-    color: null,
-    sortOrder: 1,
-    isActive: true,
-    createdAt: now,
-    updatedAt: now,
-    ...overrides,
-  };
-}
-
 function buildDistrict(overrides: Partial<District>): District {
   const now = new Date();
   return {
@@ -429,8 +399,6 @@ describe('IdeasController (e2e)', () => {
   let app: INestApplication;
   let prisma: FakePrisma;
   let storage: FakeStorage;
-  let activeCategory: Category;
-  let inactiveCategory: Category;
   let districtA: District;
   let districtB: District;
   let validJpeg: Buffer;
@@ -482,10 +450,6 @@ describe('IdeasController (e2e)', () => {
       createdAt: now,
       revokedAt: null,
     });
-
-    activeCategory = buildCategory({ name: 'Транспорт', isActive: true });
-    inactiveCategory = buildCategory({ name: 'Архивная', isActive: false });
-    prisma.categories.push(activeCategory, inactiveCategory);
 
     districtA = buildDistrict({ name: 'Центральный' });
     districtB = buildDistrict({ name: 'Советский' });
@@ -577,7 +541,7 @@ describe('IdeasController (e2e)', () => {
     expect(byExpert.body.total).toBe(1);
   });
 
-  it('filters by status, category and territory', async () => {
+  it('filters by status and territory', async () => {
     await createDraft({
       title: 'Черновик по районам центрального района',
       territoryType: 'DISTRICTS',
@@ -586,7 +550,6 @@ describe('IdeasController (e2e)', () => {
     await createDraft({
       action: 'PUBLISH',
       title: 'Опубликованная инициатива города Красноярска',
-      categoryId: activeCategory.id,
       territoryType: 'CITYWIDE',
     });
 
@@ -596,13 +559,6 @@ describe('IdeasController (e2e)', () => {
       .set('Cookie', AUTH_COOKIE)
       .expect(200);
     expect(byStatus.body.total).toBe(1);
-
-    const byCategory = await request(server())
-      .get('/admin/ideas')
-      .query({ categoryId: activeCategory.id })
-      .set('Cookie', AUTH_COOKIE)
-      .expect(200);
-    expect(byCategory.body.total).toBe(1);
 
     const byDistrict = await request(server())
       .get('/admin/ideas')
@@ -635,26 +591,9 @@ describe('IdeasController (e2e)', () => {
   it('creates a PUBLISHED idea with valid data', async () => {
     const idea = await createDraft({
       action: 'PUBLISH',
-      categoryId: activeCategory.id,
     });
     expect(idea.status).toBe('PUBLISHED');
     expect(idea.publishedAt).not.toBeNull();
-  });
-
-  it('rejects publish without a category (400)', async () => {
-    await request(server())
-      .post('/admin/ideas')
-      .set('Cookie', AUTH_COOKIE)
-      .send(draftBody({ action: 'PUBLISH' }))
-      .expect(400);
-  });
-
-  it('rejects publish with an inactive category (400)', async () => {
-    await request(server())
-      .post('/admin/ideas')
-      .set('Cookie', AUTH_COOKIE)
-      .send(draftBody({ action: 'PUBLISH', categoryId: inactiveCategory.id }))
-      .expect(400);
   });
 
   it('saves district relations and skips them for city-wide', async () => {
@@ -715,7 +654,7 @@ describe('IdeasController (e2e)', () => {
   });
 
   it('publishes a draft, unpublishes and archives it', async () => {
-    const idea = await createDraft({ categoryId: activeCategory.id });
+    const idea = await createDraft();
 
     const published = await request(server())
       .post(`/admin/ideas/${idea.id}/publish`)
@@ -738,7 +677,7 @@ describe('IdeasController (e2e)', () => {
   });
 
   it('restores ARCHIVED to DRAFT and records one revision', async () => {
-    const idea = await createDraft({ categoryId: activeCategory.id });
+    const idea = await createDraft();
     await request(server())
       .post(`/admin/ideas/${idea.id}/publish`)
       .set('Cookie', AUTH_COOKIE)
@@ -772,7 +711,7 @@ describe('IdeasController (e2e)', () => {
   });
 
   it('rejects publish for an ARCHIVED initiative (400)', async () => {
-    const idea = await createDraft({ categoryId: activeCategory.id });
+    const idea = await createDraft();
     await request(server())
       .post(`/admin/ideas/${idea.id}/archive`)
       .set('Cookie', AUTH_COOKIE)
@@ -785,7 +724,7 @@ describe('IdeasController (e2e)', () => {
   });
 
   it('allows publish after restore from ARCHIVED', async () => {
-    const idea = await createDraft({ categoryId: activeCategory.id });
+    const idea = await createDraft();
     await request(server())
       .post(`/admin/ideas/${idea.id}/archive`)
       .set('Cookie', AUTH_COOKIE)
@@ -803,7 +742,7 @@ describe('IdeasController (e2e)', () => {
   });
 
   it('keeps revisions append-only and ordered newest first', async () => {
-    const idea = await createDraft({ categoryId: activeCategory.id });
+    const idea = await createDraft();
     await request(server())
       .post(`/admin/ideas/${idea.id}/publish`)
       .set('Cookie', AUTH_COOKIE)
@@ -820,7 +759,7 @@ describe('IdeasController (e2e)', () => {
 
   it('computes real summary counts', async () => {
     await createDraft();
-    await createDraft({ action: 'PUBLISH', categoryId: activeCategory.id });
+    await createDraft({ action: 'PUBLISH' });
     const archivedIdea = await createDraft();
     await request(server())
       .post(`/admin/ideas/${archivedIdea.id}/archive`)
@@ -1004,7 +943,7 @@ describe('IdeasController (e2e)', () => {
   });
 
   it('allows publishing an idea without an image', async () => {
-    const idea = await createDraft({ categoryId: activeCategory.id });
+    const idea = await createDraft();
     const published = await request(server())
       .post(`/admin/ideas/${idea.id}/publish`)
       .set('Cookie', AUTH_COOKIE)
@@ -1014,7 +953,7 @@ describe('IdeasController (e2e)', () => {
   });
 
   it('writes idea and image audit records without secrets', async () => {
-    const idea = await createDraft({ categoryId: activeCategory.id });
+    const idea = await createDraft();
     expect(prisma.auditLogs.map((row) => row.action)).toEqual(['IDEA_CREATED']);
     expect(prisma.auditLogs[0].actorId).toBe('admin-1');
     expect(JSON.stringify(prisma.auditLogs[0])).not.toContain('passwordHash');

@@ -21,7 +21,6 @@ function jsonResponse(body: unknown, status: number): Response {
 }
 
 const defaultConfig = (overrides?: Partial<PublicConfig['features']>): PublicConfig => ({
-  categories: [],
   districts: [],
   features: {
     PUBLIC_CATALOG: false,
@@ -45,6 +44,7 @@ const publicIdeas: PublicIdeaListItem[] = [
   {
     slug: 'idea-a',
     title: 'Инициатива A',
+    description: 'Краткое описание инициативы для списка.',
     authorName: 'Иван Иванов',
     publishedAt: '2026-08-10T00:00:00.000Z',
     territory: 'Центральный район — пр. Мира',

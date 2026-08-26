@@ -33,13 +33,10 @@ export class StatisticsService {
       published,
       archived,
       withLocation,
-      uncategorized,
       statusGroups,
       sourceGroups,
-      categoryGroups,
       citywideCount,
       districtGroups,
-      categories,
       districts,
     ] = await Promise.all([
       this.prisma.idea.count({
@@ -51,17 +48,12 @@ export class StatisticsService {
       this.prisma.idea.count({
         where: { latitude: { not: null }, longitude: { not: null } },
       }),
-      this.prisma.idea.count({ where: { categoryId: null } }),
       this.prisma.idea.groupBy({
         by: ['status'],
         _count: { _all: true },
       }),
       this.prisma.idea.groupBy({
         by: ['sourceType'],
-        _count: { _all: true },
-      }),
-      this.prisma.idea.groupBy({
-        by: ['categoryId'],
         _count: { _all: true },
       }),
       this.prisma.idea.count({
@@ -71,7 +63,6 @@ export class StatisticsService {
         by: ['districtId'],
         _count: { _all: true },
       }),
-      this.prisma.category.findMany({ select: { id: true, name: true } }),
       this.prisma.district.findMany({ select: { id: true, name: true } }),
     ]);
 
@@ -97,19 +88,6 @@ export class StatisticsService {
       count: sourceCount.get(sourceType) ?? 0,
     }));
 
-    const categoryCount = new Map(
-      categoryGroups
-        .filter((row) => row.categoryId)
-        .map((row) => [row.categoryId as string, row._count._all]),
-    );
-    const byCategory: NamedCount[] = categories
-      .map((category) => ({
-        id: category.id,
-        name: category.name,
-        count: categoryCount.get(category.id) ?? 0,
-      }))
-      .sort(sortNamed);
-
     const districtCount = new Map(
       districtGroups.map((row) => [row.districtId, row._count._all]),
     );
@@ -132,10 +110,8 @@ export class StatisticsService {
       published,
       archived,
       withLocation,
-      uncategorized,
       byStatus,
       bySource,
-      byCategory,
       byTerritory,
     };
   }
@@ -155,7 +131,6 @@ export class StatisticsService {
         longitude: true,
         createdAt: true,
         publishedAt: true,
-        category: { select: { name: true } },
         topic: { select: { name: true } },
         districts: {
           select: { district: { select: { name: true } } },

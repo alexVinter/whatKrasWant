@@ -22,9 +22,7 @@ export interface StatisticsSummary {
   published: number;
   archived: number;
   withLocation: number;
-  uncategorized: number;
   byStatus: StatusCount[];
   bySource: SourceCount[];
-  byCategory: NamedCount[];
   byTerritory: NamedCount[];
 }

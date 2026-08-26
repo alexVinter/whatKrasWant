@@ -35,7 +35,13 @@ export function PublicFooter() {
           <h2 className={styles.footerTitle}>Партнёры</h2>
           <ul className={styles.partners}>
             {FOOTER_PARTNERS.map((partner) => (
-              <li key={partner.id} className={styles.partner} aria-label={partner.name}>
+              <li
+                key={partner.id}
+                className={`${styles.partner} ${
+                  partner.theme === 'dark' ? styles.partnerDark : ''
+                }`}
+                aria-label={partner.name}
+              >
                 <img className={styles.partnerLogo} src={partner.src} alt="" />
               </li>
             ))}

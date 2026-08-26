@@ -1,5 +1,4 @@
 import type {
-  Category,
   District,
   IdeaStatus,
   NewsStatus,
@@ -18,7 +17,6 @@ export interface IdeaAuditFields {
   sourceType: string;
   expertName: string | null;
   expertOrg: string | null;
-  categoryId: string | null;
   topicId: string | null;
   territoryType: TerritoryType;
   address: string | null;
@@ -40,7 +38,6 @@ export function ideaAuditSnapshot(
     sourceType: idea.sourceType,
     expertName: idea.expertName,
     expertOrg: idea.expertOrg,
-    categoryId: idea.categoryId,
     topicId: idea.topicId,
     territoryType: idea.territoryType,
     districtIds,
@@ -51,18 +48,6 @@ export function ideaAuditSnapshot(
     isTop20: idea.isTop20,
     publishedAt: idea.publishedAt ? idea.publishedAt.toISOString() : null,
     hasImage,
-  };
-}
-
-export function categoryAuditSnapshot(
-  category: Pick<Category, 'id' | 'name' | 'slug' | 'sortOrder' | 'isActive'>,
-): Prisma.InputJsonObject {
-  return {
-    id: category.id,
-    name: category.name,
-    slug: category.slug,
-    sortOrder: category.sortOrder,
-    isActive: category.isActive,
   };
 }
 

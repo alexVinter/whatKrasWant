@@ -19,7 +19,6 @@ const INITIATIVE_HEADERS = [
   'Организация',
   'Статус',
   'Тема идеи',
-  'Категория',
   'Территория',
   'Адрес',
   'Есть геометка',
@@ -111,7 +110,6 @@ export class StatisticsXlsxService {
         idea.expertOrg ?? '',
         STATUS_LABELS[idea.status],
         idea.topic?.name ?? '',
-        idea.category?.name ?? '',
         territoryText(idea),
         idea.address ?? '',
         yesNo(idea.latitude != null && idea.longitude != null),
@@ -120,8 +118,8 @@ export class StatisticsXlsxService {
         idea.createdAt,
         idea.publishedAt,
       ]);
-      setDateCell(row.getCell(13), idea.createdAt);
-      setDateCell(row.getCell(14), idea.publishedAt);
+      setDateCell(row.getCell(12), idea.createdAt);
+      setDateCell(row.getCell(13), idea.publishedAt);
     }
   }
 
@@ -173,16 +171,12 @@ export class StatisticsXlsxService {
       ['Опубликованные', summary.published],
       ['Архив', summary.archived],
       ['С геометкой', summary.withLocation],
-      ['Без категории', summary.uncategorized],
     ];
     for (const item of summary.byStatus) {
       rows.push([`Статус: ${item.label}`, item.count]);
     }
     for (const item of summary.bySource) {
       rows.push([`Источник: ${item.label}`, item.count]);
-    }
-    for (const item of summary.byCategory) {
-      rows.push([`Категория: ${item.name}`, item.count]);
     }
     for (const item of summary.byTerritory) {
       rows.push([`Территория: ${item.name}`, item.count]);

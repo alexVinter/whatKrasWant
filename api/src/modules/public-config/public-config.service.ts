@@ -1,12 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../database/prisma.service';
 
-export interface PublicCategory {
-  id: string;
-  name: string;
-  slug: string;
-}
-
 export interface PublicDistrict {
   id: string;
   name: string;
@@ -24,7 +18,6 @@ export type FeatureFlagKey = (typeof PUBLIC_FEATURE_FLAGS)[number];
 export type PublicFeatures = Record<FeatureFlagKey, boolean>;
 
 export interface PublicConfig {
-  categories: PublicCategory[];
   districts: PublicDistrict[];
   features: PublicFeatures;
 }
@@ -34,11 +27,7 @@ export class PublicConfigService {
   constructor(private readonly prisma: PrismaService) {}
 
   async getConfig(): Promise<PublicConfig> {
-    const [categories, districts, settings] = await Promise.all([
-      this.prisma.category.findMany({
-        where: { isActive: true },
-        orderBy: [{ sortOrder: 'asc' }, { name: 'asc' }],
-      }),
+    const [districts, settings] = await Promise.all([
       this.prisma.district.findMany({
         where: { isActive: true },
         orderBy: [{ sortOrder: 'asc' }, { name: 'asc' }],
@@ -56,11 +45,6 @@ export class PublicConfigService {
     }, {} as PublicFeatures);
 
     return {
-      categories: categories.map((c) => ({
-        id: c.id,
-        name: c.name,
-        slug: c.slug,
-      })),
       districts: districts.map((d) => ({ id: d.id, name: d.name })),
       features,
     };

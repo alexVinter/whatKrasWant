@@ -1,23 +1,15 @@
 import { useState, type ReactNode } from 'react';
 import {
-  useAdminCategories,
   useAdminDistricts,
-  useCategoryMutations,
   useDistrictMutations,
 } from '../../../features/taxonomy/queries';
-import type {
-  AdminCategory,
-  AdminDistrict,
-  TaxonomyInput,
-} from '../../../features/taxonomy/types';
+import type { AdminDistrict, TaxonomyInput } from '../../../features/taxonomy/types';
 import { TaxonomyDialog } from './TaxonomyDialog';
 import styles from './AdminTaxonomyPage.module.css';
 
 type DialogState =
-  | { kind: 'category'; mode: 'create' }
-  | { kind: 'category'; mode: 'edit'; entity: AdminCategory }
-  | { kind: 'district'; mode: 'create' }
-  | { kind: 'district'; mode: 'edit'; entity: AdminDistrict };
+  | { mode: 'create' }
+  | { mode: 'edit'; entity: AdminDistrict };
 
 interface SectionProps<T> {
   title: string;
@@ -64,9 +56,7 @@ function Section<T extends { id: string }>({
 }
 
 export function AdminTaxonomyPage() {
-  const categories = useAdminCategories();
   const districts = useAdminDistricts();
-  const categoryMutations = useCategoryMutations();
   const districtMutations = useDistrictMutations();
   const [dialog, setDialog] = useState<DialogState | null>(null);
 
@@ -76,99 +66,54 @@ export function AdminTaxonomyPage() {
     if (!dialog) {
       return;
     }
-    if (dialog.kind === 'category') {
-      if (dialog.mode === 'edit') {
-        await categoryMutations.update.mutateAsync({
-          id: dialog.entity.id,
-          input,
-        });
-      } else {
-        await categoryMutations.create.mutateAsync(input);
-      }
+    if (dialog.mode === 'edit') {
+      await districtMutations.update.mutateAsync({
+        id: dialog.entity.id,
+        input,
+      });
     } else {
-      if (dialog.mode === 'edit') {
-        await districtMutations.update.mutateAsync({
-          id: dialog.entity.id,
-          input,
-        });
-      } else {
-        await districtMutations.create.mutateAsync(input);
-      }
+      await districtMutations.create.mutateAsync(input);
     }
     closeDialog();
   }
 
-  const dialogProps = dialog
-    ? buildDialogProps(dialog)
-    : null;
+  const dialogProps = dialog ? buildDialogProps(dialog) : null;
 
   return (
     <div className={styles.page}>
-      <h1 className={styles.title}>Категории и районы</h1>
+      <h1 className={styles.title}>Районы</h1>
 
-      <div className={styles.columns}>
-        <Section<AdminCategory>
-          title="Категории"
-          isLoading={categories.isLoading}
-          isError={categories.isError}
-          items={categories.data}
-          onAdd={() => setDialog({ kind: 'category', mode: 'create' })}
-          listClassName={styles.categoryList}
-          renderItem={(category) => (
-            <button
-              key={category.id}
-              type="button"
-              className={styles.categoryRow}
-              onClick={() =>
-                setDialog({ kind: 'category', mode: 'edit', entity: category })
-              }
+      <Section<AdminDistrict>
+        title="Районы"
+        isLoading={districts.isLoading}
+        isError={districts.isError}
+        items={districts.data}
+        onAdd={() => setDialog({ mode: 'create' })}
+        listClassName={styles.districtList}
+        renderItem={(district) => (
+          <button
+            key={district.id}
+            type="button"
+            className={`${styles.districtRow} ${
+              district.isActive ? '' : styles.districtRowInactive
+            }`}
+            onClick={() => setDialog({ mode: 'edit', entity: district })}
+          >
+            <span className={styles.rowName}>{district.name}</span>
+            <span
+              className={`${styles.status} ${
+                district.isActive ? styles.statusActive : styles.statusInactive
+              } ${styles.districtStatus}`}
             >
-              <span className={styles.rowName}>{category.name}</span>
-              <span
-                className={`${styles.status} ${
-                  category.isActive ? styles.statusActive : styles.statusInactive
-                }`}
-              >
-                {category.isActive ? 'Активна' : 'Неактивна'}
-              </span>
-            </button>
-          )}
-        />
-
-        <Section<AdminDistrict>
-          title="Районы"
-          isLoading={districts.isLoading}
-          isError={districts.isError}
-          items={districts.data}
-          onAdd={() => setDialog({ kind: 'district', mode: 'create' })}
-          listClassName={styles.districtList}
-          renderItem={(district) => (
-            <button
-              key={district.id}
-              type="button"
-              className={`${styles.districtRow} ${
-                district.isActive ? '' : styles.districtRowInactive
-              }`}
-              onClick={() =>
-                setDialog({ kind: 'district', mode: 'edit', entity: district })
-              }
-            >
-              <span className={styles.rowName}>{district.name}</span>
-              <span
-                className={`${styles.status} ${
-                  district.isActive ? styles.statusActive : styles.statusInactive
-                } ${styles.districtStatus}`}
-              >
-                {district.isActive ? 'Активен' : 'Неактивен'}
-              </span>
-            </button>
-          )}
-        />
-      </div>
+              {district.isActive ? 'Активен' : 'Неактивен'}
+            </span>
+          </button>
+        )}
+      />
 
       {dialog && dialogProps && (
         <TaxonomyDialog
-          key={`${dialog.kind}-${dialog.mode}-${
+          key={`district-${dialog.mode}-${
             dialog.mode === 'edit' ? dialog.entity.id : 'new'
           }`}
           title={dialogProps.title}
@@ -186,14 +131,12 @@ export function AdminTaxonomyPage() {
 }
 
 function buildDialogProps(dialog: DialogState) {
-  const isCategory = dialog.kind === 'category';
-  const activeLabel = isCategory ? 'Активна' : 'Активен';
   const submitLabel = dialog.mode === 'edit' ? 'Сохранить' : 'Добавить';
 
   if (dialog.mode === 'edit') {
     return {
-      title: isCategory ? 'Категория' : 'Район',
-      activeLabel,
+      title: 'Район',
+      activeLabel: 'Активен',
       submitLabel,
       initialName: dialog.entity.name,
       initialSortOrder: dialog.entity.sortOrder,
@@ -202,8 +145,8 @@ function buildDialogProps(dialog: DialogState) {
   }
 
   return {
-    title: isCategory ? 'Новая категория' : 'Новый район',
-    activeLabel,
+    title: 'Новый район',
+    activeLabel: 'Активен',
     submitLabel,
     initialName: '',
     initialSortOrder: null as number | null,
