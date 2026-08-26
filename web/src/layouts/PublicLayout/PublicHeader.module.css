@@ -381,7 +381,64 @@
     background: var(--k400-burgundy);
     box-shadow: 0 2px 6px rgba(180, 30, 65, 0.22);
   }
+}
 
+@media (min-width: 768px) and (max-width: 1319px) {
+  .header {
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 12px;
+  }
+
+  .headerBrand {
+    min-width: 0;
+    flex: 1;
+  }
+
+  .desktopNav,
+  .cta {
+    display: none;
+  }
+
+  .burger {
+    display: inline-flex;
+    position: relative;
+    z-index: 1;
+    flex-shrink: 0;
+    margin-left: 0;
+  }
+
+  .headerShell:has(.mobileMenu) .header {
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
+  }
+
+  .mobileMenu {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    margin-top: -1px;
+    padding: 12px var(--header-pad-x) 18px;
+    border: 1px solid rgba(22, 50, 79, 0.1);
+    border-top: none;
+    border-radius: 0 0 14px 14px;
+    background: #ffffff;
+    box-shadow: 0 8px 28px rgba(22, 50, 79, 0.07);
+  }
+
+  .mobileNavLink {
+    font-size: 15px;
+    padding: 4px 0;
+  }
+
+  .mobileCta {
+    display: inline-flex;
+    width: 100%;
+    margin-top: 4px;
+    border-radius: 10px;
+  }
+}
+
+@media (min-width: 1320px) {
   .burger,
   .mobileMenu {
     display: none;
