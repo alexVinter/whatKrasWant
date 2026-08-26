@@ -1,9 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import {
-  useAdminCategories,
-  useAdminDistricts,
-} from '../../../features/taxonomy/queries';
+import { useAdminDistricts } from '../../../features/taxonomy/queries';
 import { useIdeas } from '../../../features/ideas/queries';
 import { STATUS_FILTER_OPTIONS, territoryLabel } from '../../../features/ideas/labels';
 import type { IdeaListFilters, IdeaStatus } from '../../../features/ideas/types';
@@ -15,7 +12,6 @@ export function AdminInitiativesPage() {
   const [filters, setFilters] = useState<IdeaListFilters>({});
 
   const ideas = useIdeas(filters);
-  const categories = useAdminCategories();
   const districts = useAdminDistricts();
 
   const patch = (next: Partial<IdeaListFilters>) =>
@@ -72,19 +68,6 @@ export function AdminInitiativesPage() {
         </select>
         <select
           className={styles.filterSelect}
-          aria-label="Все категории"
-          value={filters.categoryId ?? ''}
-          onChange={(event) => patch({ categoryId: event.target.value })}
-        >
-          <option value="">Все категории</option>
-          {(categories.data ?? []).map((category) => (
-            <option key={category.id} value={category.id}>
-              {category.name}
-            </option>
-          ))}
-        </select>
-        <select
-          className={styles.filterSelect}
           aria-label="Все территории"
           value={filters.territory ?? ''}
           onChange={(event) => patch({ territory: event.target.value })}
@@ -104,7 +87,6 @@ export function AdminInitiativesPage() {
       <div className={styles.list}>
         <div className={styles.listHeader} aria-hidden="true">
           <span>Название / автор</span>
-          <span>Категория</span>
           <span>Территория</span>
           <span>Статус</span>
           <span className={styles.actionsHead}>Действия</span>
@@ -134,9 +116,6 @@ export function AdminInitiativesPage() {
                 Автор: {item.expertName ?? '—'}
               </span>
             </span>
-            <span className={styles.cellCategory}>
-              {item.category?.name ?? '—'}
-            </span>
             <span className={styles.cellTerritory}>{territoryLabel(item)}</span>
             <span className={styles.cellStatus}>
               <StatusBadge status={item.status} />
@@ -147,10 +126,6 @@ export function AdminInitiativesPage() {
           </button>
         ))}
       </div>
-
-      <p className={styles.footnote}>
-        Категорию пользователь не выбирает — её назначает администратор.
-      </p>
     </div>
   );
 }

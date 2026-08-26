@@ -86,6 +86,7 @@ export function HomeRatingSection({ catalogEnabled }: HomeRatingSectionProps) {
                 </span>
                 <span className={styles.author}>Автор: {item.authorName}</span>
                 <span className={styles.title}>{item.title}</span>
+                <span className={styles.description}>{item.description}</span>
                 <span className={styles.votes}>{formatVotes(item.voteCount)}</span>
               </article>
             </HorizontalSliderItem>
@@ -118,6 +119,7 @@ export function HomeRatingSection({ catalogEnabled }: HomeRatingSectionProps) {
                 </span>
                 <span className={styles.author}>Автор: {item.authorName}</span>
                 <span className={styles.title}>{item.title}</span>
+                <span className={styles.description}>{item.description}</span>
                 <span className={styles.votes}>{formatVotes(item.voteCount)}</span>
               </Link>
             </HorizontalSliderItem>

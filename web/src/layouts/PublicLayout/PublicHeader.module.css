@@ -21,8 +21,8 @@
   grid-template-columns: 1fr auto;
   align-items: center;
   gap: 12px;
-  width: min(100%, var(--home-container-max));
-  max-width: var(--home-container-max);
+  width: min(100%, var(--home-shell-max));
+  max-width: var(--home-shell-max);
   margin-inline: auto;
   padding: 12px var(--home-container-padding);
   background: transparent;
@@ -252,10 +252,10 @@
 @media (min-width: 768px) {
   .headerShell {
     box-sizing: border-box;
-    width: min(100%, calc(var(--home-container-max) + 48px));
-    max-width: calc(var(--home-container-max) + 48px);
+    width: min(100%, var(--home-shell-max));
+    max-width: var(--home-shell-max);
     margin-inline: auto;
-    padding: 14px clamp(20px, 3vw, 32px) 0;
+    padding: 14px var(--home-container-padding) 0;
   }
 
   .header {

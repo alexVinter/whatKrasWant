@@ -20,10 +20,6 @@ export class ListIdeasDto {
   @IsEnum(IdeaStatus)
   status?: IdeaStatus;
 
-  @IsOptional()
-  @IsString()
-  categoryId?: string;
-
   // districtId, or the literal 'CITYWIDE' for city-wide initiatives.
   @IsOptional()
   @IsString()

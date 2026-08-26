@@ -13,7 +13,6 @@ function buildQuery(filters: IdeaListFilters): string {
   const params = new URLSearchParams();
   if (filters.search) params.set('search', filters.search);
   if (filters.status) params.set('status', filters.status);
-  if (filters.categoryId) params.set('categoryId', filters.categoryId);
   if (filters.territory) params.set('territory', filters.territory);
   if (filters.page) params.set('page', String(filters.page));
   if (filters.pageSize) params.set('pageSize', String(filters.pageSize));

@@ -14,7 +14,6 @@ export interface IdeaListItem {
   title: string;
   sourceType: SourceType;
   expertName: string | null;
-  category: { id: string; name: string } | null;
   topic: IdeaTopicRef | null;
   territoryType: TerritoryType;
   districts: { id: string; name: string }[];
@@ -44,8 +43,6 @@ export interface IdeaDetail {
   expertOrg: string | null;
   title: string;
   description: string;
-  categoryId: string | null;
-  category: { id: string; name: string; isActive: boolean } | null;
   topicId: string | null;
   topic: IdeaTopicRef | null;
   territoryType: TerritoryType;
@@ -84,7 +81,6 @@ export interface CreateIdeaInput {
   expertOrg?: string;
   title: string;
   description: string;
-  categoryId?: string | null;
   topicId?: string | null;
   territoryType: TerritoryType;
   districtIds?: string[];
@@ -99,7 +95,6 @@ export interface UpdateIdeaInput {
   expertOrg?: string;
   title?: string;
   description?: string;
-  categoryId?: string | null;
   topicId?: string | null;
   territoryType?: TerritoryType;
   districtIds?: string[];
@@ -113,7 +108,6 @@ export interface UpdateIdeaInput {
 export interface IdeaListFilters {
   search?: string;
   status?: IdeaStatus;
-  categoryId?: string;
   territory?: string;
   page?: number;
   pageSize?: number;

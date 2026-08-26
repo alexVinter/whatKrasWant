@@ -18,13 +18,8 @@ const SAMPLE: AdminStatistics = {
   published: 1,
   archived: 1,
   withLocation: 1,
-  uncategorized: 0,
   byStatus: [],
   bySource: [],
-  byCategory: [
-    { id: 'c1', name: 'Благоустройство', count: 3 },
-    { id: 'c2', name: 'Транспорт', count: 1 },
-  ],
   byTerritory: [
     { id: 'd1', name: 'Советский', count: 2 },
     { id: 'CITYWIDE', name: 'Весь город', count: 1 },
@@ -136,9 +131,6 @@ describe('admin statistics', () => {
     expect(screen.getAllByText('Черновики').length).toBeGreaterThan(0);
     expect(screen.getByText('Опубликовано')).toBeInTheDocument();
     expect(screen.getAllByText('Архив').length).toBeGreaterThan(0);
-    expect(screen.getByText('По категориям')).toBeInTheDocument();
-    expect(screen.getByText('Благоустройство')).toBeInTheDocument();
-    expect(screen.getByText('Транспорт')).toBeInTheDocument();
     expect(screen.getByText('По территориям')).toBeInTheDocument();
     expect(screen.getByText('Советский')).toBeInTheDocument();
     expect(screen.getByText('Весь город')).toBeInTheDocument();

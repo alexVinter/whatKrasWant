@@ -126,11 +126,6 @@ export function AdminStatisticsPage() {
 
       <div className={styles.distributions}>
         <DistributionList
-          title="По категориям"
-          items={data?.byCategory ?? []}
-          barClassName={styles.barFillCategory}
-        />
-        <DistributionList
           title="По территориям"
           items={data?.byTerritory ?? []}
           barClassName={styles.barFillTerritory}

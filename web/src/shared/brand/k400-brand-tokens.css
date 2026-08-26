@@ -17,6 +17,9 @@
   /* Pixel targets @ 1865px page viewport — docs/cursor_visual_refs/desktop/01-home.png */
   --home-container-max: 1680px;
   --home-container-padding: 16px;
+  --home-shell-max: calc(
+    var(--home-container-max) + 2 * var(--home-container-padding)
+  );
   --home-section-gap: 48px;
   --home-hero-title-size: 64px;
   --home-hero-body-size: 18px;
@@ -41,7 +44,7 @@
 
 @media (min-width: 1280px) {
   :root {
-    --home-container-padding: 0;
+    --home-container-padding: clamp(40px, 4.2vw, 72px);
     --home-section-gap: 36px;
     --home-header-offset: 96px;
   }

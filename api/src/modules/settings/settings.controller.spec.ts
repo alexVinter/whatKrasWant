@@ -137,10 +137,6 @@ class FakePrisma {
     },
   };
 
-  category = {
-    findMany: (): Promise<never[]> => Promise.resolve([]),
-  };
-
   district = {
     findMany: (): Promise<never[]> => Promise.resolve([]),
   };

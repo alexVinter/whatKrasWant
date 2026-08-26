@@ -51,10 +51,6 @@ export class CreateIdeaDto {
 
   @IsOptional()
   @IsUUID()
-  categoryId?: string | null;
-
-  @IsOptional()
-  @IsUUID()
   topicId?: string | null;
 
   @IsEnum(TerritoryType)

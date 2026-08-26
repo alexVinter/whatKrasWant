@@ -26,7 +26,7 @@ const NAV_ITEMS: NavItem[] = [
         pathname !== '/admin/initiatives/new'),
   },
   { label: 'Создать инициативу', to: '/admin/initiatives/new', end: true },
-  { label: 'Категории и районы', to: '/admin/taxonomy' },
+  { label: 'Районы', to: '/admin/taxonomy' },
   {
     label: 'Новости',
     to: '/admin/news',

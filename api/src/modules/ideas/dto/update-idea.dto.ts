@@ -45,10 +45,6 @@ export class UpdateIdeaDto {
 
   @IsOptional()
   @IsUUID()
-  categoryId?: string | null;
-
-  @IsOptional()
-  @IsUUID()
   topicId?: string | null;
 
   @IsOptional()

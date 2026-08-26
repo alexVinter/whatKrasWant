@@ -1,6 +1,7 @@
 export interface PublicIdeaListItem {
   slug: string;
   title: string;
+  description: string;
   authorName: string;
   publishedAt: string | null;
   territory: string | null;

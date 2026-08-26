@@ -1,9 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import {
-  useAdminCategories,
-  useAdminDistricts,
-} from '../../../features/taxonomy/queries';
+import { useAdminDistricts } from '../../../features/taxonomy/queries';
 import { useAdminIdeaTopics } from '../../../features/idea-topics/queries';
 import { useCreateIdea } from '../../../features/ideas/queries';
 import { uploadIdeaImage } from '../../../features/ideas/api';
@@ -25,7 +22,6 @@ import styles from './AdminInitiativeCreatePage.module.css';
 
 export function AdminInitiativeCreatePage() {
   const navigate = useNavigate();
-  const categories = useAdminCategories();
   const topics = useAdminIdeaTopics();
   const districts = useAdminDistricts();
   const createIdea = useCreateIdea();
@@ -42,7 +38,7 @@ export function AdminInitiativeCreatePage() {
   };
 
   const submit = async (action: 'DRAFT' | 'PUBLISH') => {
-    const validationError = validateIdeaForm(values, action === 'PUBLISH');
+    const validationError = validateIdeaForm(values);
     if (validationError) {
       setError(validationError);
       return;
@@ -68,7 +64,6 @@ export function AdminInitiativeCreatePage() {
     }
   };
 
-  const activeCategories = (categories.data ?? []).filter((c) => c.isActive);
   const saving = createIdea.isPending || uploading;
 
   return (
@@ -144,25 +139,6 @@ export function AdminInitiativeCreatePage() {
               {(topics.data ?? []).map((topic) => (
                 <option key={topic.id} value={topic.id}>
                   {topic.name}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div className={fieldStyles.field}>
-            <label className={fieldStyles.label} htmlFor="categoryId">
-              Категория
-            </label>
-            <select
-              id="categoryId"
-              className={fieldStyles.select}
-              value={values.categoryId}
-              onChange={(event) => patch({ categoryId: event.target.value })}
-            >
-              <option value="">Выберите категорию</option>
-              {activeCategories.map((category) => (
-                <option key={category.id} value={category.id}>
-                  {category.name}
                 </option>
               ))}
             </select>

@@ -65,6 +65,9 @@ export function PublicInitiativesPage() {
                 <span className={styles.body}>
                   <span className={styles.author}>Автор: {item.authorName}</span>
                   <span className={styles.cardTitle}>{item.title}</span>
+                  {item.description ? (
+                    <span className={styles.description}>{item.description}</span>
+                  ) : null}
                   {item.territory && (
                     <span className={styles.territory}>{item.territory}</span>
                   )}
