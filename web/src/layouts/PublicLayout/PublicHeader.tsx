@@ -109,9 +109,9 @@ export function PublicHeader({ menuOpen, onMenuToggle, onCloseMenu }: PublicHead
               aria-hidden="true"
               decoding="async"
             />
-            <Link to="/" className={styles.logoLink} aria-label="На главную">
+            <div className={styles.logoMark} role="img" aria-label="Красноярск 400">
               <BrandLogo variant="public" />
-            </Link>
+            </div>
           </div>
           <nav className={styles.desktopNav} aria-label="Разделы">
             {NAV_ITEMS.map((item) => (

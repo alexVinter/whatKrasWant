@@ -1,4 +1,3 @@
-import { BrandLogo } from '../../shared/ui/BrandLogo';
 import {
   FOOTER_EMAIL,
   FOOTER_PARTNERS,
@@ -9,16 +8,28 @@ import styles from './PublicFooter.module.css';
 
 const SKYLINE_SRC = '/images/footer/krasnoyarsk-skyline.png';
 
+const LIGHT_PARTNERS = FOOTER_PARTNERS.filter((partner) => partner.theme !== 'dark');
+const DARK_PARTNERS = FOOTER_PARTNERS.filter((partner) => partner.theme === 'dark');
+
+function PartnerCard({
+  name,
+  src,
+  theme,
+}: (typeof FOOTER_PARTNERS)[number]) {
+  return (
+    <li
+      className={`${styles.partner} ${theme === 'dark' ? styles.partnerDark : ''}`}
+      aria-label={name}
+    >
+      <img className={styles.partnerLogo} src={src} alt="" />
+    </li>
+  );
+}
+
 export function PublicFooter() {
   return (
     <footer className={styles.footer}>
       <div className={styles.footerInner}>
-        <div className={styles.logoColumn}>
-          <div className={styles.footerLogo}>
-            <BrandLogo variant="footer" />
-          </div>
-        </div>
-
         <div className={`${styles.section} ${styles.sectionLinks}`}>
           <h2 className={styles.footerTitle}>Полезные ссылки</h2>
           <ul className={styles.footerList}>
@@ -33,19 +44,18 @@ export function PublicFooter() {
 
         <div className={`${styles.section} ${styles.sectionPartners}`}>
           <h2 className={styles.footerTitle}>Партнёры</h2>
-          <ul className={styles.partners}>
-            {FOOTER_PARTNERS.map((partner) => (
-              <li
-                key={partner.id}
-                className={`${styles.partner} ${
-                  partner.theme === 'dark' ? styles.partnerDark : ''
-                }`}
-                aria-label={partner.name}
-              >
-                <img className={styles.partnerLogo} src={partner.src} alt="" />
-              </li>
-            ))}
-          </ul>
+          <div className={styles.partnersLayout}>
+            <ul className={`${styles.partnersRow} ${styles.partnersRowLight}`}>
+              {LIGHT_PARTNERS.map((partner) => (
+                <PartnerCard key={partner.id} {...partner} />
+              ))}
+            </ul>
+            <ul className={`${styles.partnersRow} ${styles.partnersRowDark}`}>
+              {DARK_PARTNERS.map((partner) => (
+                <PartnerCard key={partner.id} {...partner} />
+              ))}
+            </ul>
+          </div>
         </div>
 
         <div className={`${styles.section} ${styles.sectionContacts}`}>

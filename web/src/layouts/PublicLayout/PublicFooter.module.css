@@ -40,8 +40,30 @@
 }
 
 .logoColumn {
+  display: none;
+}
+
+.partnersLayout {
   display: flex;
   flex-direction: column;
+  gap: 12px;
+}
+
+.partnersRow {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 12px;
+}
+
+.partnersRowLight,
+.partnersRowDark {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.partners {
+  display: none;
 }
 
 .section {
@@ -50,15 +72,7 @@
 }
 
 .footerLogo {
-  display: inline-flex;
-  padding: 14px 16px;
-  background: rgba(255, 255, 255, 0.98);
-  width: fit-content;
-  border-radius: 4px;
-}
-
-.footerLogo img {
-  width: 92px;
+  display: none;
 }
 
 .footerTitle {
@@ -101,15 +115,6 @@
   font-weight: 300;
   line-height: 1.55;
   color: var(--footer-text-muted);
-}
-
-.partners {
-  margin: 0;
-  padding: 0;
-  list-style: none;
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 12px;
 }
 
 .partner {
@@ -232,8 +237,8 @@
     gap: 40px;
   }
 
-  .partners {
-    grid-template-columns: repeat(3, 1fr);
+  .partnersRowLight,
+  .partnersRowDark {
     gap: 14px;
   }
 
@@ -255,14 +260,14 @@
   .footerInner {
     display: grid;
     grid-template-columns:
-      minmax(190px, 0.72fr)
-      minmax(480px, 2.2fr)
-      minmax(190px, 0.78fr);
+      minmax(220px, 0.9fr)
+      minmax(520px, 2.4fr)
+      minmax(200px, 0.82fr);
     grid-template-rows: auto auto;
     grid-template-areas:
-      'logo partners contacts'
-      'links skyline skyline';
-    row-gap: clamp(20px, 2.2vw, 28px);
+      'links partners contacts'
+      'skyline skyline skyline';
+    row-gap: clamp(8px, 1vw, 14px);
     column-gap: 0;
     align-items: start;
   }
@@ -272,26 +277,13 @@
     border-top: none;
   }
 
-  .logoColumn {
-    grid-area: logo;
-    align-self: center;
-    padding-right: clamp(16px, 2vw, 32px);
-  }
-
-  .footerLogo {
-    padding: 12px 14px;
-  }
-
-  .footerLogo img {
-    width: 100px;
-  }
-
   .sectionLinks {
     grid-area: links;
     margin-top: 0;
     padding-top: 0;
     border-top: none;
     max-width: 22rem;
+    padding-right: clamp(16px, 2vw, 32px);
   }
 
   .sectionLinks .footerTitle {
@@ -314,8 +306,15 @@
     border-left: 1px solid var(--footer-divider);
   }
 
-  .sectionPartners .partners {
-    grid-template-columns: repeat(3, 1fr);
+  .partnersRowLight {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: clamp(12px, 1vw, 16px);
+  }
+
+  .partnersRowDark {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    width: calc(50% - (clamp(12px, 1vw, 16px) / 2));
+    margin-inline: auto;
     gap: clamp(12px, 1vw, 16px);
   }
 
@@ -335,7 +334,7 @@
     z-index: 0;
     width: 100%;
     aspect-ratio: var(--footer-skyline-ratio);
-    max-height: clamp(210px, 17vw, 250px);
+    max-height: clamp(188px, 15vw, 228px);
     align-self: end;
     justify-self: stretch;
     margin-left: clamp(8px, 1vw, 16px);
@@ -353,10 +352,10 @@
 
   .footerInner {
     grid-template-columns:
-      minmax(200px, 0.68fr)
-      minmax(560px, 2.4fr)
-      minmax(200px, 0.82fr);
-    row-gap: 24px;
+      minmax(240px, 0.88fr)
+      minmax(580px, 2.5fr)
+      minmax(220px, 0.88fr);
+    row-gap: 12px;
   }
 
   .sectionLinks {
@@ -367,8 +366,13 @@
     padding-inline: clamp(28px, 2.4vw, 40px);
   }
 
-  .sectionPartners .partners {
+  .partnersRowLight,
+  .partnersRowDark {
     gap: 16px;
+  }
+
+  .partnersRowDark {
+    width: calc(50% - 8px);
   }
 
   .sectionPartners .partner {
@@ -385,7 +389,7 @@
   }
 
   .skyline {
-    max-height: clamp(220px, 14vw, 260px);
+    max-height: clamp(200px, 12.5vw, 238px);
     margin-left: clamp(12px, 1.2vw, 20px);
   }
 }
@@ -400,13 +404,13 @@
 @supports not (aspect-ratio: 1 / 1) {
   @media (min-width: 1100px) {
     .skyline {
-      height: clamp(210px, 17vw, 250px);
+      height: clamp(188px, 15vw, 228px);
     }
   }
 
   @media (min-width: 1440px) {
     .skyline {
-      height: clamp(220px, 14vw, 260px);
+      height: clamp(200px, 12.5vw, 238px);
     }
   }
 }

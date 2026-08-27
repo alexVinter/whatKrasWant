@@ -31,26 +31,26 @@ export const FOOTER_PARTNERS: FooterPartner[] = [
     src: partnerAdministration,
   },
   {
+    id: 'delovaya-rossiya',
+    name: 'Деловая Россия',
+    src: partnerDelovayaRossiya,
+  },
+  { id: 'artstyle', name: 'ArtStyle', src: partnerArtstyle },
+  {
+    id: 'project-development',
+    name: 'Проект Девелопмент',
+    src: partnerProektdevelopment,
+  },
+  {
     id: 'yenisei-siberia',
     name: 'Енисейская Сибирь',
     src: partnerEnisib,
     theme: 'dark',
-  },
-  { id: 'artstyle', name: 'ArtStyle', src: partnerArtstyle },
-  {
-    id: 'delovaya-rossiya',
-    name: 'Деловая Россия',
-    src: partnerDelovayaRossiya,
   },
   {
     id: 'tv7',
     name: '7 канал',
     src: partnerMoyKrasnoyarsk,
     theme: 'dark',
-  },
-  {
-    id: 'project-development',
-    name: 'Проект Девелопмент',
-    src: partnerProektdevelopment,
   },
 ];

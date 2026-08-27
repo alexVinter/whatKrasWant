@@ -1,6 +1,7 @@
 .section {
   composes: section sectionTightTop from './homeContainer.module.css';
   background: #ffffff;
+  margin-top: var(--home-hero-map-gap);
 }
 
 .mapHeader {
@@ -20,9 +21,9 @@
   font-size: 14px;
   font-weight: 700;
   color: #ffffff;
-  background: var(--k400-red);
+  background-color: var(--k400-red);
   border: none;
-  border-radius: 0;
+  border-radius: var(--k400-cta-radius);
   cursor: pointer;
   white-space: nowrap;
 }
@@ -74,7 +75,6 @@
     padding: 0 24px;
     font-size: 16px;
     align-self: flex-start;
-    margin-top: -8px;
   }
 
   .mapWrap {
