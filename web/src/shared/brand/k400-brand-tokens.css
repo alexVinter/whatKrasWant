@@ -13,6 +13,7 @@
   --k400-navy: #16324F;
   --k400-text: #1C2B3A;
   --k400-text-muted: #6B7686;
+  --k400-cta-radius: 10px;
 
   /* Pixel targets @ 1865px page viewport — docs/cursor_visual_refs/desktop/01-home.png */
   --home-container-max: 1680px;
@@ -27,11 +28,13 @@
   --home-section-title-size: clamp(26px, 2.8vw, 36px);
   --home-map-height: 400px;
   --home-header-offset: 88px;
+  --home-hero-map-gap: 0;
 }
 
 @media (max-width: 767px) {
   :root {
     --home-container-padding: 20px;
+    --home-hero-map-gap: 16px;
   }
 }
 
@@ -40,6 +43,7 @@
     /* Laptop/tablet landscape: avoid the previous 24px-only band up to 1280px. */
     --home-container-padding: clamp(28px, 2.8vw, 40px);
     --home-section-gap: 40px;
+    --home-hero-map-gap: clamp(20px, 2.2vw, 32px);
   }
 }
 

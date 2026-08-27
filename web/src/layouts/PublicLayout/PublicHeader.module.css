@@ -42,10 +42,12 @@
   display: contents;
 }
 
+.logoMark,
 .logoLink {
   display: flex;
   align-items: center;
   flex-shrink: 0;
+  cursor: default;
 }
 
 .desktopNav {
@@ -84,9 +86,9 @@
   font-size: 14px;
   font-weight: 700;
   color: #ffffff;
-  background: var(--k400-red);
+  background-color: var(--k400-red);
   border: none;
-  border-radius: 0;
+  border-radius: var(--k400-cta-radius);
   cursor: pointer;
   white-space: nowrap;
 }
@@ -196,12 +198,14 @@
     user-select: none;
   }
 
+  .logoMark,
   .logoLink {
     position: relative;
     z-index: 1;
     padding-left: 2px;
   }
 
+  .logoMark img,
   .logoLink img {
     width: 58px;
     height: auto;
@@ -243,7 +247,7 @@
     margin-top: 4px;
     min-width: 0;
     height: 44px;
-    border-radius: 10px;
+    border-radius: var(--k400-cta-radius);
     font-size: 14px;
     font-weight: 600;
   }
@@ -305,6 +309,7 @@
     user-select: none;
   }
 
+  .logoMark,
   .logoLink {
     position: relative;
     z-index: 1;
@@ -321,6 +326,7 @@
     display: none;
   }
 
+  .logoMark img,
   .logoLink img {
     height: 44px;
     width: auto;
@@ -369,16 +375,16 @@
     font-size: 13px;
     font-weight: 600;
     letter-spacing: 0.01em;
-    border-radius: 10px;
-    background: #d91e36;
-    box-shadow: 0 1px 2px rgba(217, 30, 54, 0.18);
+    border-radius: var(--k400-cta-radius);
+    background-color: var(--k400-red);
+    box-shadow: 0 1px 2px rgba(228, 3, 46, 0.18);
     transition:
       background-color 0.2s ease,
       box-shadow 0.2s ease;
   }
 
   .cta:hover:not(:disabled) {
-    background: var(--k400-burgundy);
+    background-color: var(--k400-burgundy);
     box-shadow: 0 2px 6px rgba(180, 30, 65, 0.22);
   }
 }
@@ -434,7 +440,7 @@
     display: inline-flex;
     width: 100%;
     margin-top: 4px;
-    border-radius: 10px;
+    border-radius: var(--k400-cta-radius);
   }
 }
 
@@ -461,10 +467,12 @@
     border-radius: 16px;
   }
 
+  .logoMark,
   .logoLink {
     padding-left: clamp(16px, 1.8vw, 24px);
   }
 
+  .logoMark img,
   .logoLink img {
     height: 46px;
   }

@@ -56,17 +56,19 @@
   height: 52px;
   padding: 0 24px;
   border: none;
-  border-radius: 0;
+  border-radius: var(--k400-cta-radius);
   font-size: 16px;
   font-weight: 700;
   color: #ffffff;
-  background: var(--k400-red);
+  background-color: var(--k400-red);
   cursor: pointer;
 }
 
 .heroCta:disabled {
   opacity: 0.72;
   cursor: not-allowed;
+  animation: none !important;
+  transform: none !important;
 }
 
 .ideasCount {
