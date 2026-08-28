@@ -23,6 +23,17 @@
   scroll-snap-align: start;
 }
 
+@media (max-width: 767px) {
+  .track {
+    padding: 2px var(--home-mobile-slider-inset) 8px;
+    scroll-padding-inline: var(--home-mobile-slider-inset);
+  }
+
+  .item {
+    flex: 0 0 calc(100% - var(--home-slider-peek, 48px));
+  }
+}
+
 @media (min-width: 768px) {
   .root {
     box-sizing: border-box;

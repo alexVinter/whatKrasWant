@@ -35,6 +35,8 @@
   :root {
     --home-container-padding: 20px;
     --home-hero-map-gap: 16px;
+    --home-mobile-slider-inset: 12px;
+    --home-slider-peek: 48px;
   }
 }
 

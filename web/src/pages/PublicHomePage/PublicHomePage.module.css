@@ -394,12 +394,7 @@
     margin-top: 12px;
   }
 
-  .newsSlider > div {
-    padding-left: 0;
-    scroll-padding-inline-start: var(--home-container-padding);
-  }
-
-  .newsSlider > div > div:first-child {
-    margin-inline-start: var(--home-container-padding);
+  .newsHeader.newsHeader {
+    padding-inline: var(--home-mobile-slider-inset);
   }
 }
