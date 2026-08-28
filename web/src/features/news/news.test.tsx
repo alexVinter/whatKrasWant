@@ -5,7 +5,8 @@ import { renderApp } from '../../test/testUtils';
 import {
   FOOTER_EMAIL,
   FOOTER_PARTNERS,
-  FOOTER_SUPPORT_PHRASE,
+  FOOTER_SUPPORT_ORG,
+  FOOTER_SUPPORT_PREFIX,
 } from '../../layouts/PublicLayout/footer';
 import type { AdminNewsDetail, PublicNewsDetail, PublicNewsListItem } from './types';
 
@@ -374,7 +375,8 @@ describe('public news', () => {
     renderApp('/news');
     await screen.findByRole('heading', { name: 'Новости' });
 
-    expect(screen.getByText(FOOTER_SUPPORT_PHRASE)).toBeInTheDocument();
+    expect(screen.getByText(FOOTER_SUPPORT_PREFIX)).toBeInTheDocument();
+    expect(screen.getByText(FOOTER_SUPPORT_ORG)).toBeInTheDocument();
     expect(screen.getByText(FOOTER_EMAIL)).toBeInTheDocument();
     expect(screen.getByText('vvv@fond.ensib.ru')).toBeInTheDocument();
     expect(screen.queryByText('vvv@fond.esib.ru')).not.toBeInTheDocument();

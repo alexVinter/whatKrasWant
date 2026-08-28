@@ -133,6 +133,12 @@
   color: var(--k400-red);
 }
 
+@media (max-width: 767px) {
+  .ratingHeader.ratingHeader {
+    padding-inline: var(--home-mobile-slider-inset);
+  }
+}
+
 @media (min-width: 1280px) {
   .section.section {
     padding-block: var(--home-section-gap) 116px;

@@ -5,8 +5,12 @@ import partnerEnisib from '../../shared/brand/partners/enisib.png';
 import partnerMoyKrasnoyarsk from '../../shared/brand/partners/moy-krasnoyarsk.png';
 import partnerProektdevelopment from '../../shared/brand/partners/proektdevelopment.png';
 
-export const FOOTER_SUPPORT_PHRASE =
-  'Проект реализуется при поддержке АНО „Краевой центр поддержки и развития общественных инициатив“';
+export const FOOTER_SUPPORT_PREFIX = 'Проект реализуется при поддержке';
+
+export const FOOTER_SUPPORT_ORG =
+  'АНО „Краевой центр поддержки и развития общественных инициатив“';
+
+export const FOOTER_SUPPORT_PHRASE = `${FOOTER_SUPPORT_PREFIX} ${FOOTER_SUPPORT_ORG}`;
 
 export const FOOTER_EMAIL = 'vvv@fond.ensib.ru';
 

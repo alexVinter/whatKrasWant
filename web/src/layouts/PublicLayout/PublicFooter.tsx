@@ -1,7 +1,8 @@
 import {
   FOOTER_EMAIL,
   FOOTER_PARTNERS,
-  FOOTER_SUPPORT_PHRASE,
+  FOOTER_SUPPORT_ORG,
+  FOOTER_SUPPORT_PREFIX,
   FOOTER_USEFUL_LINKS,
 } from './footer';
 import styles from './PublicFooter.module.css';
@@ -39,7 +40,11 @@ export function PublicFooter() {
               </li>
             ))}
           </ul>
-          <p className={styles.support}>{FOOTER_SUPPORT_PHRASE}</p>
+          <p className={styles.support}>
+            <span>{FOOTER_SUPPORT_PREFIX}</span>
+            <br />
+            <span>{FOOTER_SUPPORT_ORG}</span>
+          </p>
         </div>
 
         <div className={`${styles.section} ${styles.sectionPartners}`}>
