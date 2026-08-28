@@ -6,6 +6,7 @@ import type { PublicMapIdea } from '../../features/public-ideas/types';
 import {
   DEFAULT_MAP_CENTER,
   DEFAULT_MAP_ZOOM,
+  ensureCompactAttributionCollapsed,
   toMapLibreCenter,
 } from './config';
 import { createIdeaMarkerElement } from './createIdeaMarkerElement';
@@ -79,7 +80,9 @@ export function IdeasMapView({
         center: toMapLibreCenter(DEFAULT_MAP_CENTER),
         zoom: DEFAULT_MAP_ZOOM,
         interactive,
+        attributionControl: { compact: true },
       });
+      ensureCompactAttributionCollapsed(map);
 
       map.on('error', (event) => {
         console.error('MAPLIBRE ERROR:', event.error ?? event);
