@@ -97,10 +97,6 @@
   font-size: 11px;
 }
 
-.maplibregl-ctrl-attrib-button {
-  display: none;
-}
-
 @media (max-width: 767px) {
   .maplibregl-popup.idea-map-popup-shell {
     max-width: min(320px, calc(100vw - 40px));
