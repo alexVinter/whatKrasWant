@@ -9,6 +9,8 @@ import {
 } from '../../../shared/map/config';
 import { createIdeaMarkerElement } from '../../../shared/map/createIdeaMarkerElement';
 import { getActiveMapStyleProvider } from '../../../shared/map/providers';
+import { isPointInKrasnoyarsk } from '../../../shared/geo/is-point-in-krasnoyarsk';
+import { KRASNOYARSK_GEO_ERROR } from '../../../shared/geo/krasnoyarsk.constants';
 import '../../../shared/map/maplibreMap.css';
 import styles from './form.module.css';
 
@@ -41,6 +43,7 @@ export function IdeaGeoMapPicker({
   const markerRef = useRef<Marker | null>(null);
   const onChangeRef = useRef(onChange);
   const [mapReadyVersion, setMapReadyVersion] = useState(0);
+  const [geoError, setGeoError] = useState<string | null>(null);
 
   useEffect(() => {
     onChangeRef.current = onChange;
@@ -76,9 +79,17 @@ export function IdeaGeoMapPicker({
       });
 
       map.on('click', (event) => {
+        const lat = event.lngLat.lat;
+        const lng = event.lngLat.lng;
+        if (!isPointInKrasnoyarsk(lat, lng)) {
+          setGeoError(KRASNOYARSK_GEO_ERROR);
+          return;
+        }
+
+        setGeoError(null);
         onChangeRef.current({
-          latitude: formatCoord(event.lngLat.lat),
-          longitude: formatCoord(event.lngLat.lng),
+          latitude: formatCoord(lat),
+          longitude: formatCoord(lng),
         });
       });
 
@@ -128,6 +139,10 @@ export function IdeaGeoMapPicker({
         return;
       }
 
+      if (isPointInKrasnoyarsk(lat, lng)) {
+        setGeoError(null);
+      }
+
       const lngLat: [number, number] = [lng, lat];
       if (!markerRef.current) {
         markerRef.current = new Marker({ element: createIdeaMarkerElement() })
@@ -152,11 +167,18 @@ export function IdeaGeoMapPicker({
   }, [latitude, longitude, mapReadyVersion]);
 
   return (
-    <div
-      ref={containerRef}
-      className={styles.geoMap}
-      aria-label="Геометка на карте"
-      role="application"
-    />
+    <div className={styles.geoMapField}>
+      <div
+        ref={containerRef}
+        className={styles.geoMap}
+        aria-label="Геометка на карте"
+        role="application"
+      />
+      {geoError && (
+        <p className={styles.geoError} role="alert">
+          {geoError}
+        </p>
+      )}
+    </div>
   );
 }

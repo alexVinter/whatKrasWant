@@ -12,6 +12,8 @@ import { ListIdeasDto } from './dto/list-ideas.dto';
 import { AuditService } from '../audit/audit.service';
 import { AUDIT_ACTIONS, AUDIT_ENTITIES } from '../audit/audit.constants';
 import { ideaAuditSnapshot } from '../audit/audit.snapshots';
+import { isPointInKrasnoyarsk } from '../../common/geo/is-point-in-krasnoyarsk';
+import { KRASNOYARSK_GEO_ERROR } from '../../common/geo/krasnoyarsk.constants';
 
 const DEFAULT_PAGE_SIZE = 20;
 
@@ -654,6 +656,9 @@ export class IdeasService {
       longitude === null
     ) {
       throw new BadRequestException('Укажите координаты геометки.');
+    }
+    if (!isPointInKrasnoyarsk(latitude, longitude)) {
+      throw new BadRequestException(KRASNOYARSK_GEO_ERROR);
     }
     return { address, latitude, longitude };
   }

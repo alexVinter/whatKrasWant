@@ -623,6 +623,62 @@ describe('IdeasController (e2e)', () => {
       .expect(400);
   });
 
+  it('rejects specific place outside Krasnoyarsk on create (400)', async () => {
+    const res = await request(server())
+      .post('/admin/ideas')
+      .set('Cookie', AUTH_COOKIE)
+      .send(
+        draftBody({
+          hasSpecificPlace: true,
+          address: 'Москва, Красная площадь',
+          latitude: 55.7558,
+          longitude: 37.6173,
+        }),
+      )
+      .expect(400);
+
+    expect(res.body.message).toContain('Укажите точку в границах Красноярска');
+  });
+
+  it('accepts specific place inside Krasnoyarsk on create (201)', async () => {
+    const res = await request(server())
+      .post('/admin/ideas')
+      .set('Cookie', AUTH_COOKIE)
+      .send(
+        draftBody({
+          hasSpecificPlace: true,
+          address: 'проспект Мира, 1',
+          latitude: 56.0153,
+          longitude: 92.8932,
+        }),
+      )
+      .expect(201);
+
+    expect(res.body.latitude).toBe(56.0153);
+    expect(res.body.longitude).toBe(92.8932);
+  });
+
+  it('rejects update with coordinates outside Krasnoyarsk (400)', async () => {
+    const idea = await createDraft({
+      hasSpecificPlace: true,
+      address: 'проспект Мира, 1',
+      latitude: 56.0153,
+      longitude: 92.8932,
+    });
+
+    const res = await request(server())
+      .patch(`/admin/ideas/${idea.id}`)
+      .set('Cookie', AUTH_COOKIE)
+      .send({
+        latitude: 55.7558,
+        longitude: 37.6173,
+        reason: 'Попытка перенести точку',
+      })
+      .expect(400);
+
+    expect(res.body.message).toContain('Укажите точку в границах Красноярска');
+  });
+
   it('updates fields and creates a revision, but a no-op PATCH does not', async () => {
     const idea = await createDraft();
 

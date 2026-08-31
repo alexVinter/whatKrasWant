@@ -1,3 +1,5 @@
+import { isPointInKrasnoyarsk } from '../../shared/geo/is-point-in-krasnoyarsk';
+import { KRASNOYARSK_GEO_ERROR } from '../../shared/geo/krasnoyarsk.constants';
 import type {
   CreateIdeaInput,
   IdeaDetail,
@@ -124,11 +126,13 @@ export function validateIdeaForm(values: IdeaFormValues): string | null {
     if (values.address.trim().length === 0) {
       return 'Укажите адрес для конкретного места.';
     }
-    if (
-      parseCoord(values.latitude) === undefined ||
-      parseCoord(values.longitude) === undefined
-    ) {
+    const lat = parseCoord(values.latitude);
+    const lng = parseCoord(values.longitude);
+    if (lat === undefined || lng === undefined) {
       return 'Укажите координаты геометки (широта и долгота).';
+    }
+    if (!isPointInKrasnoyarsk(lat, lng)) {
+      return KRASNOYARSK_GEO_ERROR;
     }
   }
   return null;

@@ -26,6 +26,13 @@ class MockMap {
 
   addControl() {}
 
+  getContainer() {
+    return {
+      querySelector: () => null,
+      addEventListener: vi.fn(),
+    };
+  }
+
   isStyleLoaded() {
     return true;
   }

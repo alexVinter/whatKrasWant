@@ -141,6 +141,18 @@
 }
 
 /* Geo map picker */
+.geoMapField {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.geoError {
+  margin: 0;
+  font-size: 13px;
+  color: var(--color-danger);
+}
+
 .geoMap {
   width: 100%;
   height: clamp(280px, 40vw, 420px);

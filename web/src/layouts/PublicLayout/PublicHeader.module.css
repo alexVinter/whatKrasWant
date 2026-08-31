@@ -50,6 +50,13 @@
   cursor: default;
 }
 
+.logoImg {
+  display: block;
+  width: auto;
+  max-width: 100%;
+  object-fit: contain;
+}
+
 .desktopNav {
   display: none;
 }
@@ -205,11 +212,9 @@
     padding-left: 2px;
   }
 
-  .logoMark img,
-  .logoLink img {
+  .logoImg {
     width: 58px;
     height: auto;
-    filter: brightness(0) invert(1);
   }
 
   .burger {
@@ -326,11 +331,9 @@
     display: none;
   }
 
-  .logoMark img,
-  .logoLink img {
+  .logoImg {
     height: 44px;
     width: auto;
-    filter: brightness(0) invert(1);
   }
 
   .desktopNav {
@@ -338,7 +341,8 @@
     align-items: center;
     justify-content: center;
     gap: clamp(28px, 3.2vw, 44px);
-    justify-self: center;
+    min-width: 0;
+    justify-self: stretch;
     background: transparent;
   }
 
@@ -367,6 +371,7 @@
 
   .cta {
     display: inline-flex;
+    flex-shrink: 0;
     justify-self: end;
     min-width: 0;
     width: auto;
@@ -451,6 +456,29 @@
   }
 }
 
+@media (min-width: 1320px) and (max-width: 1439px) {
+  .header {
+    gap: clamp(20px, 2.2vw, 32px);
+  }
+
+  .desktopNav {
+    gap: clamp(20px, 2.2vw, 32px);
+  }
+
+  .navLink {
+    font-size: 14px;
+  }
+
+  .navLinkActive {
+    padding: 6px 12px;
+  }
+
+  .cta {
+    padding: 0 16px;
+    font-size: 13px;
+  }
+}
+
 @media (min-width: 1280px) {
   .headerShell {
     padding-top: 16px;
@@ -472,8 +500,7 @@
     padding-left: clamp(16px, 1.8vw, 24px);
   }
 
-  .logoMark img,
-  .logoLink img {
+  .logoImg {
     height: 46px;
   }
 

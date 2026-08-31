@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { BrandLogo } from '../../shared/ui/BrandLogo';
+import logoWhite from './k400-logo-horizontal-white.svg';
 import { usePublicConfig } from '../../features/public-config/queries';
 import { useActiveHomeSection } from '../../shared/motion/useActiveHomeSection';
 import { scrollToHomeSection } from '../../shared/motion/scrollToHomeSection';
@@ -109,8 +109,13 @@ export function PublicHeader({ menuOpen, onMenuToggle, onCloseMenu }: PublicHead
               aria-hidden="true"
               decoding="async"
             />
-            <div className={styles.logoMark} role="img" aria-label="Красноярск 400">
-              <BrandLogo variant="public" />
+            <div className={styles.logoMark}>
+              <img
+                className={styles.logoImg}
+                src={logoWhite}
+                alt="400 лет Красноярску"
+                decoding="async"
+              />
             </div>
           </div>
           <nav className={styles.desktopNav} aria-label="Разделы">
