@@ -1,6 +1,5 @@
-// «Чего хочет Красноярск?» — схема БД (Релиз 1 core + новости).
-// Модели Релиза 2 (User, Vote, ConsentAcceptance, LegalDocument)
-// добавляются на соответствующих этапах.
+// «Чего хочет Красноярск?» — схема БД (Релиз 1 core + новости + Релиз 2 auth).
+// Vote, ConsentAcceptance, LegalDocument добавляются на следующих этапах.
 
 generator client {
   provider = "prisma-client-js"
@@ -69,6 +68,37 @@ model AdminSession {
   @@map("admin_sessions")
 }
 
+model User {
+  id          String    @id @default(uuid())
+  vkId        String    @unique @map("vk_id")
+  firstName   String    @map("first_name")
+  lastName    String    @map("last_name")
+  avatarUrl   String?   @map("avatar_url")
+  isBlocked   Boolean   @default(false) @map("is_blocked")
+  lastLoginAt DateTime? @map("last_login_at")
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+
+  sessions PublicSession[]
+  ideas    Idea[]
+
+  @@map("users")
+}
+
+model PublicSession {
+  id        String    @id @default(uuid())
+  userId    String    @map("user_id")
+  tokenHash String    @unique @map("token_hash")
+  expiresAt DateTime  @map("expires_at")
+  createdAt DateTime  @default(now()) @map("created_at")
+  revokedAt DateTime? @map("revoked_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("public_sessions")
+}
+
 model IdeaTopic {
   id        String   @id @default(uuid())
   name      String
@@ -119,6 +149,8 @@ model Idea {
 
   topicId   String?        @map("topic_id")
   topic     IdeaTopic?     @relation(fields: [topicId], references: [id])
+  userId    String?        @map("user_id")
+  user      User?          @relation(fields: [userId], references: [id])
   districts IdeaDistrict[]
   image     IdeaImage?
   revisions IdeaRevision[]

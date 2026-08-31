@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { useLocation } from 'react-router-dom';
 import logoWhite from './k400-logo-horizontal-white.svg';
-import { usePublicConfig } from '../../features/public-config/queries';
+import { SubmitIdeaCta } from '../../features/public-submission/SubmitIdeaCta';
 import { useActiveHomeSection } from '../../shared/motion/useActiveHomeSection';
 import { scrollToHomeSection } from '../../shared/motion/scrollToHomeSection';
 import styles from './PublicHeader.module.css';
@@ -11,30 +11,12 @@ function sectionHref(id: string, onHome: boolean): string {
 }
 
 interface SubmitHeaderCtaProps {
-  enabled: boolean;
   className: string;
   onNavigate?: () => void;
 }
 
-function SubmitHeaderCta({ enabled, className, onNavigate }: SubmitHeaderCtaProps) {
-  if (enabled) {
-    return (
-      <Link to="/submit" className={className} onClick={onNavigate}>
-        Предложить идею
-      </Link>
-    );
-  }
-  return (
-    <button
-      type="button"
-      className={className}
-      disabled
-      aria-disabled="true"
-      onClick={onNavigate}
-    >
-      Предложить идею
-    </button>
-  );
+function SubmitHeaderCta({ className, onNavigate }: SubmitHeaderCtaProps) {
+  return <SubmitIdeaCta className={className} onNavigate={onNavigate} />;
 }
 
 const NAV_ITEMS = [
@@ -52,14 +34,10 @@ interface PublicHeaderProps {
 
 export function PublicHeader({ menuOpen, onMenuToggle, onCloseMenu }: PublicHeaderProps) {
   const location = useLocation();
-  const configQuery = usePublicConfig();
   const onHome = location.pathname === '/';
   const newsActive = location.pathname.startsWith('/news');
   const initiativesActive = location.pathname.startsWith('/initiatives');
   const activeHomeSection = useActiveHomeSection(onHome);
-
-  const features = configQuery.data?.features;
-  const submissionEnabled = features?.PUBLIC_SUBMISSION ?? false;
 
   useEffect(() => {
     if (!onHome || !location.hash) {
@@ -130,7 +108,7 @@ export function PublicHeader({ menuOpen, onMenuToggle, onCloseMenu }: PublicHead
               </a>
             ))}
           </nav>
-          <SubmitHeaderCta enabled={submissionEnabled} className={styles.cta} />
+          <SubmitHeaderCta className={styles.cta} />
           <button
             type="button"
             className={styles.burger}
@@ -157,7 +135,6 @@ export function PublicHeader({ menuOpen, onMenuToggle, onCloseMenu }: PublicHead
               </a>
             ))}
             <SubmitHeaderCta
-              enabled={submissionEnabled}
               className={styles.mobileCta}
               onNavigate={onCloseMenu}
             />

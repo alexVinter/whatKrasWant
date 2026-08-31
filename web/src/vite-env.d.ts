@@ -3,6 +3,8 @@
 interface ImportMetaEnv {
   readonly VITE_MAP_TILE_URL?: string;
   readonly VITE_MAP_TILE_ATTRIBUTION?: string;
+  readonly VITE_VK_CLIENT_ID?: string;
+  readonly VITE_VK_REDIRECT_URI?: string;
 }
 
 interface ImportMeta {

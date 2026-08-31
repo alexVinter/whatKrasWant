@@ -7,6 +7,8 @@ import { PublicInitiativesPage } from '../../pages/public/PublicInitiativesPage/
 import { PublicInitiativeDetailPage } from '../../pages/public/PublicInitiativeDetailPage/PublicInitiativeDetailPage';
 import { PublicNewsPage } from '../../pages/public/PublicNewsPage/PublicNewsPage';
 import { PublicNewsDetailPage } from '../../pages/public/PublicNewsDetailPage/PublicNewsDetailPage';
+import { PublicAuthTestPage } from '../../pages/public/PublicAuthTestPage/PublicAuthTestPage';
+import { PublicSubmitPage } from '../../pages/public/PublicSubmitPage/PublicSubmitPage';
 import { AdminLoginPage } from '../../pages/admin/AdminLoginPage/AdminLoginPage';
 import { AdminOverviewPage } from '../../pages/admin/AdminOverviewPage/AdminOverviewPage';
 import { AdminTaxonomyPage } from '../../pages/admin/AdminTaxonomyPage/AdminTaxonomyPage';
@@ -28,6 +30,8 @@ export function AppRouter() {
         <Route path="/news/:slug" element={<PublicNewsDetailPage />} />
         <Route path="/initiatives" element={<PublicInitiativesPage />} />
         <Route path="/initiatives/:slug" element={<PublicInitiativeDetailPage />} />
+        <Route path="/auth-test" element={<PublicAuthTestPage />} />
+        <Route path="/submit" element={<PublicSubmitPage />} />
       </Route>
       <Route path="/admin/login" element={<AdminLoginPage />} />
       <Route path="/admin" element={<RequireAdminAuth />}>

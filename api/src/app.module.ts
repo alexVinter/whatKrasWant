@@ -8,6 +8,7 @@ import { HealthModule } from './modules/health/health.module';
 import { IdeaTopicsModule } from './modules/idea-topics/idea-topics.module';
 import { IdeasModule } from './modules/ideas/ideas.module';
 import { IdeasPublicModule } from './modules/ideas-public/ideas-public.module';
+import { PublicAuthModule } from './modules/public-auth/public-auth.module';
 import { PublicConfigModule } from './modules/public-config/public-config.module';
 import { SettingsModule } from './modules/settings/settings.module';
 import { StatisticsModule } from './modules/statistics/statistics.module';
@@ -21,6 +22,7 @@ import { StorageModule } from './storage/storage.module';
     StorageModule,
     HealthModule,
     AdminAuthModule,
+    PublicAuthModule,
     AuditModule,
     IdeaTopicsModule,
     DistrictsModule,
