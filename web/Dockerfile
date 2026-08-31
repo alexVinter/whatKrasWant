@@ -3,6 +3,12 @@ FROM node:24-alpine AS build
 
 WORKDIR /app
 
+# Public frontend env only — never pass VK secrets into the web build stage.
+ARG VITE_VK_CLIENT_ID
+ARG VITE_VK_REDIRECT_URI
+ENV VITE_VK_CLIENT_ID=$VITE_VK_CLIENT_ID
+ENV VITE_VK_REDIRECT_URI=$VITE_VK_REDIRECT_URI
+
 COPY package.json ./
 
 RUN npm install

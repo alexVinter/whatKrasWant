@@ -1,6 +1,7 @@
 import { useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { usePublicConfig } from '../../features/public-config/queries';
+import { SubmitIdeaCta } from '../../features/public-submission/SubmitIdeaCta';
 import { usePublicNews } from '../../features/news/queries';
 import { formatNewsDate } from '../../features/news/form';
 import {
@@ -27,23 +28,11 @@ export const PROJECT_COPY_MOBILE_LINES = [
 ] as const;
 
 interface SubmitCtaProps {
-  enabled: boolean;
   className?: string;
 }
 
-function SubmitCta({ enabled, className }: SubmitCtaProps) {
-  if (enabled) {
-    return (
-      <Link to="/submit" className={className}>
-        Предложить идею
-      </Link>
-    );
-  }
-  return (
-    <button type="button" className={className} disabled aria-disabled="true">
-      Предложить идею
-    </button>
-  );
+function SubmitCta({ className }: SubmitCtaProps) {
+  return <SubmitIdeaCta className={className} />;
 }
 
 export function PublicHomePage() {
@@ -53,7 +42,6 @@ export function PublicHomePage() {
   const newsReveal = useRevealOnScroll<HTMLElement>();
   const features = configQuery.data?.features;
   const catalogEnabled = features?.PUBLIC_CATALOG ?? false;
-  const submissionEnabled = features?.PUBLIC_SUBMISSION ?? false;
   const liveNews = newsQuery.data?.items ?? [];
   const showLiveNews = newsQuery.isSuccess && liveNews.length > 0;
   const showMockNews = isDevPreview && !showLiveNews;
@@ -81,10 +69,7 @@ export function PublicHomePage() {
                 ))}
               </span>
             </p>
-            <SubmitCta
-              enabled={submissionEnabled}
-              className={`${styles.heroCta} homeMotionFadeUpDelay2`}
-            />
+            <SubmitCta className={`${styles.heroCta} homeMotionFadeUpDelay2`} />
             <p className={`${styles.ideasCount} homeMotionFadeUpDelay3`}>
               Количество собранных идей:{' '}
               <span className={styles.ideasCountValue}>—</span>
@@ -105,10 +90,7 @@ export function PublicHomePage() {
         <div className={styles.heroBottomRule} aria-hidden="true" />
       </section>
 
-      <HomeMapSection
-        catalogEnabled={catalogEnabled}
-        submissionEnabled={submissionEnabled}
-      />
+      <HomeMapSection catalogEnabled={catalogEnabled} />
 
       <HomeRatingSection catalogEnabled={catalogEnabled} />
 

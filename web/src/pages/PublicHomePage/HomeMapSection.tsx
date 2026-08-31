@@ -1,5 +1,5 @@
-import { Link } from 'react-router-dom';
 import { IdeasMap } from '../../shared/map/IdeasMap';
+import { SubmitIdeaCta } from '../../features/public-submission/SubmitIdeaCta';
 import { usePublicMapIdeas } from '../../features/public-ideas/queries';
 import { useRevealOnScroll } from '../../shared/motion/useRevealOnScroll';
 import { HomeSectionHeader } from './HomeSectionHeader';
@@ -7,28 +7,9 @@ import styles from './HomeMapSection.module.css';
 
 interface HomeMapSectionProps {
   catalogEnabled: boolean;
-  submissionEnabled: boolean;
 }
 
-function MapSubmitCta({ enabled }: { enabled: boolean }) {
-  if (enabled) {
-    return (
-      <Link to="/submit" className={styles.mapCta}>
-        Предложить идею
-      </Link>
-    );
-  }
-  return (
-    <button type="button" className={styles.mapCta} disabled aria-disabled="true">
-      Предложить идею
-    </button>
-  );
-}
-
-export function HomeMapSection({
-  catalogEnabled,
-  submissionEnabled,
-}: HomeMapSectionProps) {
+export function HomeMapSection({ catalogEnabled }: HomeMapSectionProps) {
   const query = usePublicMapIdeas(catalogEnabled);
   const markers = query.data?.items ?? [];
   const mapReveal = useRevealOnScroll<HTMLDivElement>({ threshold: 0.2 });
@@ -45,7 +26,7 @@ export function HomeMapSection({
         titleId="map-heading"
         className={styles.mapHeader}
         titleClassName={styles.mapTitle}
-        trailing={<MapSubmitCta enabled={submissionEnabled} />}
+        trailing={<SubmitIdeaCta className={styles.mapCta} />}
       />
 
       <div className={styles.mapContainer}>

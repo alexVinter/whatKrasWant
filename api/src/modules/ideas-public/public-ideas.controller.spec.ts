@@ -22,6 +22,10 @@ import { AuditService } from '../audit/audit.service';
 import { PublicIdeasController } from './public-ideas.controller';
 import { PublicMapController } from './public-map.controller';
 import { PublicIdeasService } from './public-ideas.service';
+import { PublicSubmissionService } from './public-submission.service';
+import { PublicAuthService } from '../public-auth/public-auth.service';
+import { PublicAuthGuard } from '../public-auth/guards/public-auth.guard';
+import { VkIdClient } from '../public-auth/vk-id.client';
 
 class FakeStorage {
   objects = new Map<string, { body: Buffer; contentType: string }>();
@@ -232,6 +236,7 @@ class FakePrisma {
         overrides.description ??
         'Описание тестовой инициативы E12 достаточно длинное для публикации и проверки публичного API.',
       topicId: overrides.topicId ?? null,
+      userId: overrides.userId ?? null,
       territoryType: overrides.territoryType ?? TerritoryType.DISTRICTS,
       address: overrides.address ?? 'пр. Мира',
       latitude:
@@ -296,6 +301,10 @@ describe('PublicIdeasController (e2e)', () => {
       controllers: [PublicIdeasController, PublicMapController],
       providers: [
         PublicIdeasService,
+        PublicSubmissionService,
+        PublicAuthService,
+        PublicAuthGuard,
+        VkIdClient,
         SettingsService,
         IdeaImageService,
         IdeasService,

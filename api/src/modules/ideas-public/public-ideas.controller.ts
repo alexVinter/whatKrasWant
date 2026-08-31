@@ -1,15 +1,55 @@
-import { Controller, Get, Param, Query, Res } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  HttpCode,
+  Param,
+  Post,
+  Query,
+  Req,
+  Res,
+  UploadedFile,
+  UseFilters,
+  UseGuards,
+  UseInterceptors,
+} from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
 import type { Response } from 'express';
+import { PublicAuthGuard } from '../public-auth/guards/public-auth.guard';
+import type { PublicRequest } from '../public-auth/public-auth.types';
+import { MulterExceptionFilter } from '../../common/multer-exception.filter';
 import { PublicIdeasService } from './public-ideas.service';
+import { PublicSubmissionService } from './public-submission.service';
 import { ListPublicIdeasDto } from './dto/list-public-ideas.dto';
+import { SubmitPublicIdeaDto } from './dto/submit-public-idea.dto';
+
+const UPLOAD_HARD_LIMIT = 15 * 1024 * 1024;
 
 @Controller('public/ideas')
 export class PublicIdeasController {
-  constructor(private readonly publicIdeasService: PublicIdeasService) {}
+  constructor(
+    private readonly publicIdeasService: PublicIdeasService,
+    private readonly publicSubmissionService: PublicSubmissionService,
+  ) {}
 
   @Get()
   list(@Query() query: ListPublicIdeasDto) {
     return this.publicIdeasService.list(query);
+  }
+
+  @Post()
+  @HttpCode(201)
+  @UseGuards(PublicAuthGuard)
+  @UseFilters(MulterExceptionFilter)
+  @UseInterceptors(
+    FileInterceptor('image', { limits: { fileSize: UPLOAD_HARD_LIMIT } }),
+  )
+  submit(
+    @Body() dto: SubmitPublicIdeaDto,
+    @UploadedFile() file: Express.Multer.File | undefined,
+    @Req() req: PublicRequest,
+  ) {
+    return this.publicSubmissionService.submit(dto, file, req.publicUser!);
   }
 
   @Get(':slug/image/:variant')

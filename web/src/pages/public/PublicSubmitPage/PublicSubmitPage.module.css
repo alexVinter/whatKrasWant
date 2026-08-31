@@ -1,0 +1,132 @@
+.page {
+  width: 100%;
+  max-width: var(--layout-content-max, 960px);
+  margin: 0 auto;
+  padding: 24px 16px 48px;
+  box-sizing: border-box;
+}
+
+.loading {
+  margin: 48px 0;
+  text-align: center;
+  color: var(--color-text-muted);
+}
+
+.title {
+  margin: 0 0 8px;
+  font-size: clamp(24px, 4vw, 32px);
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.lead {
+  margin: 0 0 24px;
+  color: var(--color-text-muted);
+  font-size: 15px;
+  line-height: 1.5;
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.label {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.input,
+.textarea,
+.select {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 12px 14px;
+  font: inherit;
+  color: inherit;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+}
+
+.textarea {
+  min-height: 140px;
+  resize: vertical;
+}
+
+.fileInput {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.hint {
+  margin: 0;
+  font-size: 13px;
+  color: var(--color-text-muted);
+}
+
+.error {
+  margin: 0;
+  font-size: 14px;
+  color: var(--color-danger);
+}
+
+.submitButton {
+  align-self: flex-start;
+  min-width: 200px;
+  padding: 14px 24px;
+  font: inherit;
+  font-weight: 600;
+  color: #fff;
+  background: var(--color-accent, #c62828);
+  border: none;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+}
+
+.submitButton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.successCard {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 24px;
+  background: var(--color-surface-muted);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+}
+
+.successTitle {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 700;
+}
+
+.successText {
+  margin: 0;
+  font-size: 15px;
+  line-height: 1.5;
+  color: var(--color-text-muted);
+}
+
+@media (min-width: 768px) {
+  .page {
+    padding-inline: 24px;
+  }
+}
+
+@media (min-width: 1440px) {
+  .page {
+    padding-inline: 32px;
+  }
+}

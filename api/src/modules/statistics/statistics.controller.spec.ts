@@ -164,6 +164,7 @@ function buildIdea(overrides: Partial<Idea> & { id: string; title: string }): Id
     expertOrg: 'TEST E10 Org',
     description: 'desc',
     topicId: null,
+    userId: null,
     territoryType: TerritoryType.CITYWIDE,
     address: null,
     latitude: null,

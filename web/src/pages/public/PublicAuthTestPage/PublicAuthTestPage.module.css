@@ -1,0 +1,58 @@
+.page {
+  box-sizing: border-box;
+  max-width: 640px;
+  margin: 48px auto;
+  padding: 24px;
+}
+
+.title {
+  margin: 0 0 12px;
+  font-size: 28px;
+  font-weight: 700;
+}
+
+.note {
+  margin: 0 0 24px;
+  color: #6b7686;
+  line-height: 1.5;
+}
+
+.card {
+  padding: 20px;
+  border: 1px solid rgba(22, 50, 79, 0.12);
+  border-radius: 12px;
+  background: #fff;
+}
+
+.profileName {
+  margin: 0 0 16px;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.button,
+.linkButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  padding: 0 18px;
+  border: none;
+  border-radius: 10px;
+  background: #e4032e;
+  color: #fff;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.button:disabled,
+.linkButton:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.error {
+  margin-top: 12px;
+  color: #b41e41;
+}

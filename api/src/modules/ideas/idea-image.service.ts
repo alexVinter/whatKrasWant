@@ -29,6 +29,15 @@ interface ProcessedImage {
   thumbnail: Buffer;
 }
 
+interface PreparedUpload {
+  originalKey: string;
+  optimizedKey: string;
+  thumbnailKey: string;
+  contentType: string;
+  detected: DetectedImage;
+  processed: ProcessedImage;
+}
+
 @Injectable()
 export class IdeaImageService {
   private readonly logger = new Logger(IdeaImageService.name);
@@ -52,32 +61,8 @@ export class IdeaImageService {
     if (!idea) {
       throw new NotFoundException('Initiative not found');
     }
-    if (!file || !file.buffer || file.size === 0) {
-      throw new BadRequestException('Файл изображения обязателен.');
-    }
-    if (file.size > MAX_FILE_SIZE) {
-      throw new BadRequestException('Максимальный размер файла — 10 МБ.');
-    }
 
-    const detected = detectImageType(file.buffer);
-    if (!detected) {
-      throw new BadRequestException('Допустимы изображения JPG и PNG.');
-    }
-
-    const processed = await this.process(file.buffer, detected);
-
-    const ext = detected === 'jpeg' ? 'jpg' : 'png';
-    const contentType = detected === 'jpeg' ? 'image/jpeg' : 'image/png';
-    const prefix = `ideas/${ideaId}/${randomUUID()}`;
-    const originalKey = `${prefix}/original.${ext}`;
-    const optimizedKey = `${prefix}/optimized.${ext}`;
-    const thumbnailKey = `${prefix}/thumbnail.${ext}`;
-
-    // 1-2. New objects are uploaded first; the DB still points at the old ones.
-    await this.storage.putObject(originalKey, file.buffer, contentType);
-    await this.storage.putObject(optimizedKey, processed.optimized, contentType);
-    await this.storage.putObject(thumbnailKey, processed.thumbnail, contentType);
-
+    const prepared = await this.prepareUpload(ideaId, file);
     const previous = idea.image;
     const previousKeys = previous
       ? [previous.originalKey, previous.optimizedKey, previous.thumbnailKey]
@@ -88,7 +73,22 @@ export class IdeaImageService {
       : AUDIT_ACTIONS.IDEA_IMAGE_ADDED;
     const districtIds = idea.districts.map((d) => d.districtId);
 
-    // 3. Only after successful upload do we switch the DB metadata + revision.
+    await this.storage.putObject(
+      prepared.originalKey,
+      file!.buffer,
+      prepared.contentType,
+    );
+    await this.storage.putObject(
+      prepared.optimizedKey,
+      prepared.processed.optimized,
+      prepared.contentType,
+    );
+    await this.storage.putObject(
+      prepared.thumbnailKey,
+      prepared.processed.thumbnail,
+      prepared.contentType,
+    );
+
     try {
       await this.prisma.$transaction(async (tx) => {
         if (previous) {
@@ -97,11 +97,11 @@ export class IdeaImageService {
         await tx.ideaImage.create({
           data: {
             ideaId,
-            originalKey,
-            optimizedKey,
-            thumbnailKey,
-            mimeType: contentType,
-            size: file.size,
+            originalKey: prepared.originalKey,
+            optimizedKey: prepared.optimizedKey,
+            thumbnailKey: prepared.thumbnailKey,
+            mimeType: prepared.contentType,
+            size: file!.size,
           },
         });
         const updated = await tx.idea.update({
@@ -135,28 +135,99 @@ export class IdeaImageService {
             },
             afterJson: {
               ...ideaAuditSnapshot(updated, districtIds, true),
-              mimeType: contentType,
-              size: file.size,
+              mimeType: prepared.contentType,
+              size: file!.size,
             },
           },
           tx,
         );
       });
     } catch (error) {
-      // 4. DB update failed: remove the just-uploaded orphan objects.
-      await this.storage.deleteObjects([originalKey, optimizedKey, thumbnailKey]);
+      await this.storage.deleteObjects([
+        prepared.originalKey,
+        prepared.optimizedKey,
+        prepared.thumbnailKey,
+      ]);
       this.logger.error(
         `Failed to persist image for idea ${ideaId}: ${(error as Error).message}`,
       );
       throw new InternalServerErrorException('Не удалось загрузить изображение.');
     }
 
-    // 5. New image is committed; clean up the replaced objects (best-effort).
-    if (previousKeys.length > 0 && previousKeys[0] !== originalKey) {
+    if (previousKeys.length > 0 && previousKeys[0] !== prepared.originalKey) {
       await this.storage.deleteObjects(previousKeys);
     }
 
     return this.ideasService.findOne(ideaId);
+  }
+
+  async uploadForResident(
+    ideaId: string,
+    file: Express.Multer.File | undefined,
+  ): Promise<void> {
+    const idea = await this.prisma.idea.findUnique({
+      where: { id: ideaId },
+      include: { image: true },
+    });
+    if (!idea) {
+      throw new NotFoundException('Initiative not found');
+    }
+    if (idea.image) {
+      throw new BadRequestException('Для инициативы уже есть изображение.');
+    }
+
+    const prepared = await this.prepareUpload(ideaId, file);
+
+    await this.storage.putObject(
+      prepared.originalKey,
+      file!.buffer,
+      prepared.contentType,
+    );
+    await this.storage.putObject(
+      prepared.optimizedKey,
+      prepared.processed.optimized,
+      prepared.contentType,
+    );
+    await this.storage.putObject(
+      prepared.thumbnailKey,
+      prepared.processed.thumbnail,
+      prepared.contentType,
+    );
+
+    try {
+      await this.prisma.$transaction(async (tx) => {
+        await tx.ideaImage.create({
+          data: {
+            ideaId,
+            originalKey: prepared.originalKey,
+            optimizedKey: prepared.optimizedKey,
+            thumbnailKey: prepared.thumbnailKey,
+            mimeType: prepared.contentType,
+            size: file!.size,
+          },
+        });
+        await tx.ideaRevision.create({
+          data: {
+            ideaId,
+            actorAdminId: null,
+            reason: 'Добавлено изображение',
+            snapshotJson: {
+              hasImage: true,
+            },
+          },
+        });
+      });
+    } catch (error) {
+      await this.storage.deleteObjects([
+        prepared.originalKey,
+        prepared.optimizedKey,
+        prepared.thumbnailKey,
+      ]);
+      this.logger.error(
+        `Failed to persist resident image for idea ${ideaId}: ${(error as Error).message}`,
+      );
+      throw new InternalServerErrorException('Не удалось загрузить изображение.');
+    }
   }
 
   async remove(ideaId: string, adminId: string) {
@@ -168,7 +239,6 @@ export class IdeaImageService {
       throw new NotFoundException('Initiative not found');
     }
     if (!idea.image) {
-      // Nothing to delete: idempotent, no revision.
       return this.ideasService.findOne(ideaId);
     }
 
@@ -258,6 +328,37 @@ export class IdeaImageService {
         ? idea.image.optimizedKey
         : idea.image.thumbnailKey;
     return this.storage.getObject(key);
+  }
+
+  private async prepareUpload(
+    ideaId: string,
+    file: Express.Multer.File | undefined,
+  ): Promise<PreparedUpload> {
+    if (!file || !file.buffer || file.size === 0) {
+      throw new BadRequestException('Файл изображения обязателен.');
+    }
+    if (file.size > MAX_FILE_SIZE) {
+      throw new BadRequestException('Максимальный размер файла — 10 МБ.');
+    }
+
+    const detected = detectImageType(file.buffer);
+    if (!detected) {
+      throw new BadRequestException('Допустимы изображения JPG и PNG.');
+    }
+
+    const processed = await this.process(file.buffer, detected);
+    const ext = detected === 'jpeg' ? 'jpg' : 'png';
+    const contentType = detected === 'jpeg' ? 'image/jpeg' : 'image/png';
+    const prefix = `ideas/${ideaId}/${randomUUID()}`;
+
+    return {
+      originalKey: `${prefix}/original.${ext}`,
+      optimizedKey: `${prefix}/optimized.${ext}`,
+      thumbnailKey: `${prefix}/thumbnail.${ext}`,
+      contentType,
+      detected,
+      processed,
+    };
   }
 
   /**
