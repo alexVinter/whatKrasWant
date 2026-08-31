@@ -4,7 +4,7 @@ import '../../../shared/map/maplibreSetup';
 import {
   DEFAULT_MAP_CENTER,
   DEFAULT_MAP_ZOOM,
-  ensureCompactAttributionCollapsed,
+  configureBasemapMap,
   toMapLibreCenter,
 } from '../../../shared/map/config';
 import { createIdeaMarkerElement } from '../../../shared/map/createIdeaMarkerElement';
@@ -72,7 +72,7 @@ export function IdeaGeoMapPicker({
         interactive: true,
         attributionControl: { compact: true },
       });
-      ensureCompactAttributionCollapsed(map);
+      configureBasemapMap(map);
 
       map.on('error', (event) => {
         console.error('MAPLIBRE ERROR:', event.error ?? event);

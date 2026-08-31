@@ -4,7 +4,7 @@ import { cleanup } from '@testing-library/react';
 
 class MockMap {
   on(event: string, handler: () => void) {
-    if (event === 'load') {
+    if (event === 'load' || event === 'style.load') {
       queueMicrotask(handler);
     }
     return this;
@@ -25,6 +25,12 @@ class MockMap {
   fitBounds() {}
 
   addControl() {}
+
+  getStyle() {
+    return { layers: [] };
+  }
+
+  setLayoutProperty() {}
 
   getContainer() {
     return {
