@@ -1,0 +1,5 @@
+SHELL=/bin/bash
+PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+
+# Daily at 03:30 Krasnoyarsk (UTC+7) = 20:30 UTC
+30 20 * * * root flock -n /var/lock/wkw-backup.lock /usr/local/sbin/wkw-backup.sh >> /var/log/wkw-backup.log 2>&1
