@@ -78,22 +78,20 @@ vi.mock('@tanstack/react-query', async () => {
   const actual = await vi.importActual<typeof import('@tanstack/react-query')>(
     '@tanstack/react-query',
   );
+  type UseQueryOptions = Parameters<typeof actual.useQuery>[0];
   return {
     ...actual,
-    useQuery: (options: {
-      queryKey?: unknown[];
-      queryFn?: () => Promise<unknown>;
-      enabled?: boolean;
-    }) => {
+    useQuery: (options: UseQueryOptions) => {
       if (
-        options.queryKey?.[0] === 'public' &&
-        options.queryKey?.[1] === 'idea-topics'
+        options.queryKey[0] === 'public' &&
+        options.queryKey[1] === 'idea-topics'
       ) {
-        return {
-          data: [{ id: 'topic-1', name: 'Благоустройство', slug: 'blag' }],
-          isLoading: false,
-          isError: false,
-        };
+        return actual.useQuery({
+          ...options,
+          queryFn: async () => [
+            { id: 'topic-1', name: 'Благоустройство', slug: 'blag' },
+          ],
+        });
       }
       return actual.useQuery(options);
     },
