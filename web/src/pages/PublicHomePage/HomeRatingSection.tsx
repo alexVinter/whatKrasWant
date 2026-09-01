@@ -29,6 +29,11 @@ export function HomeRatingSection({ catalogEnabled }: HomeRatingSectionProps) {
       if (b.voteCount !== a.voteCount) {
         return b.voteCount - a.voteCount;
       }
+      const pubA = a.publishedAt ? Date.parse(a.publishedAt) : 0;
+      const pubB = b.publishedAt ? Date.parse(b.publishedAt) : 0;
+      if (pubB !== pubA) {
+        return pubB - pubA;
+      }
       return a.title.localeCompare(b.title, 'ru');
     });
   }, [query.data?.items]);

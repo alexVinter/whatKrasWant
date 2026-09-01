@@ -120,6 +120,7 @@ export class StatisticsService {
     return this.prisma.idea.findMany({
       orderBy: { createdAt: 'asc' },
       select: {
+        id: true,
         title: true,
         sourceType: true,
         expertName: true,
@@ -137,5 +138,34 @@ export class StatisticsService {
         },
       },
     });
+  }
+
+  async listVoteCountsForExport(): Promise<
+    Map<string, { total: number; counted: number; excluded: number }>
+  > {
+    const rows = await this.prisma.vote.groupBy({
+      by: ['ideaId', 'isExcluded'],
+      _count: { _all: true },
+    });
+    const byIdea = new Map<
+      string,
+      { total: number; counted: number; excluded: number }
+    >();
+    for (const row of rows) {
+      const bucket = byIdea.get(row.ideaId) ?? {
+        total: 0,
+        counted: 0,
+        excluded: 0,
+      };
+      const count = row._count._all;
+      bucket.total += count;
+      if (row.isExcluded) {
+        bucket.excluded += count;
+      } else {
+        bucket.counted += count;
+      }
+      byIdea.set(row.ideaId, bucket);
+    }
+    return byIdea;
   }
 }

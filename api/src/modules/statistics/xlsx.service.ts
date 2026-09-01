@@ -72,17 +72,18 @@ export class StatisticsXlsxService {
   constructor(private readonly statistics: StatisticsService) {}
 
   async build(): Promise<{ buffer: Buffer; filename: string }> {
-    const [summary, ideas] = await Promise.all([
+    const [summary, ideas, voteCounts] = await Promise.all([
       this.statistics.getSummary(),
       this.statistics.listIdeasForExport(),
+      this.statistics.listVoteCountsForExport(),
     ]);
 
     const workbook = new ExcelJS.Workbook();
     workbook.creator = 'Чего хочет Красноярск?';
 
-    this.addInitiativesSheet(workbook, ideas);
+    this.addInitiativesSheet(workbook, ideas, voteCounts);
     this.addAuthorsSheet(workbook, ideas);
-    this.addVotesSheet(workbook);
+    this.addVotesSheet(workbook, ideas, voteCounts);
     this.addStatisticsSheet(workbook, summary);
     this.addTop20Sheet(workbook);
 
@@ -93,16 +94,27 @@ export class StatisticsXlsxService {
   private addInitiativesSheet(
     workbook: ExcelJS.Workbook,
     ideas: Awaited<ReturnType<StatisticsService['listIdeasForExport']>>,
+    voteCounts: Map<string, { total: number; counted: number; excluded: number }>,
   ): void {
+    const headers = [
+      ...INITIATIVE_HEADERS,
+      'Голосов (учитываемых)',
+      'Голосов (исключённых)',
+    ];
     const sheet = workbook.addWorksheet(XLSX_SHEETS.INITIATIVES);
-    sheet.columns = INITIATIVE_HEADERS.map((header, index) => ({
+    sheet.columns = headers.map((header, index) => ({
       header,
       key: `c${index}`,
       width: index === 0 ? 40 : 18,
     }));
-    styleHeader(sheet, INITIATIVE_HEADERS.length);
+    styleHeader(sheet, headers.length);
 
     for (const idea of ideas) {
+      const counts = voteCounts.get(idea.id) ?? {
+        total: 0,
+        counted: 0,
+        excluded: 0,
+      };
       const row = sheet.addRow([
         idea.title,
         SOURCE_LABELS[idea.sourceType],
@@ -117,6 +129,8 @@ export class StatisticsXlsxService {
         idea.longitude ?? '',
         idea.createdAt,
         idea.publishedAt,
+        counts.counted,
+        counts.excluded,
       ]);
       setDateCell(row.getCell(12), idea.createdAt);
       setDateCell(row.getCell(13), idea.publishedAt);
@@ -147,11 +161,36 @@ export class StatisticsXlsxService {
     }
   }
 
-  private addVotesSheet(workbook: ExcelJS.Workbook): void {
+  private addVotesSheet(
+    workbook: ExcelJS.Workbook,
+    ideas: Awaited<ReturnType<StatisticsService['listIdeasForExport']>>,
+    voteCounts: Map<string, { total: number; counted: number; excluded: number }>,
+  ): void {
+    const headers = [
+      'Инициатива',
+      'Статус',
+      'Всего голосов',
+      'Учитываемых',
+      'Исключённых',
+    ];
     const sheet = workbook.addWorksheet(XLSX_SHEETS.VOTES);
-    sheet.columns = [{ header: 'Информация', width: 64 }];
-    styleHeader(sheet, 1);
-    sheet.addRow(['Данные о голосах появятся в Релизе 2.']);
+    sheet.columns = headers.map((header) => ({ header, width: 28 }));
+    styleHeader(sheet, headers.length);
+
+    for (const idea of ideas) {
+      const counts = voteCounts.get(idea.id) ?? {
+        total: 0,
+        counted: 0,
+        excluded: 0,
+      };
+      sheet.addRow([
+        idea.title,
+        STATUS_LABELS[idea.status],
+        counts.total,
+        counts.counted,
+        counts.excluded,
+      ]);
+    }
   }
 
   private addStatisticsSheet(

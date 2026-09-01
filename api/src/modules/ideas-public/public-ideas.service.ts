@@ -4,14 +4,16 @@ import { PrismaService } from '../../database/prisma.service';
 import { StorageObject } from '../../storage/storage.service';
 import { IdeaImageService } from '../ideas/idea-image.service';
 import { SettingsService } from '../settings/settings.service';
+import { PublicAuthService } from '../public-auth/public-auth.service';
+import { PublicVoteService } from './public-vote.service';
 import { ListPublicIdeasDto } from './dto/list-public-ideas.dto';
 import {
   DEFAULT_PUBLIC_IDEAS_PAGE,
   DEFAULT_PUBLIC_IDEAS_PAGE_SIZE,
-  RELEASE1_VOTE_COUNT,
 } from './public-ideas.constants';
 
 type IdeaListRow = {
+  id: string;
   slug: string;
   title: string;
   description: string;
@@ -35,6 +37,8 @@ export class PublicIdeasService {
     private readonly prisma: PrismaService,
     private readonly settings: SettingsService,
     private readonly ideaImages: IdeaImageService,
+    private readonly publicVote: PublicVoteService,
+    private readonly publicAuth: PublicAuthService,
   ) {}
 
   async list(query: ListPublicIdeasDto) {
@@ -47,10 +51,8 @@ export class PublicIdeasService {
     const [rows, total] = await this.prisma.$transaction([
       this.prisma.idea.findMany({
         where,
-        orderBy: [{ publishedAt: 'desc' }, { slug: 'asc' }],
-        skip: (page - 1) * pageSize,
-        take: pageSize,
         select: {
+          id: true,
           slug: true,
           title: true,
           description: true,
@@ -67,15 +69,36 @@ export class PublicIdeasService {
       this.prisma.idea.count({ where }),
     ]);
 
+    const voteCounts = await this.publicVote.countValidVotesByIdeaIds(
+      rows.map((row) => row.id),
+    );
+    const sorted = [...rows].sort((a, b) => {
+      const voteDiff =
+        (voteCounts.get(b.id) ?? 0) - (voteCounts.get(a.id) ?? 0);
+      if (voteDiff !== 0) {
+        return voteDiff;
+      }
+      const pubA = a.publishedAt?.getTime() ?? 0;
+      const pubB = b.publishedAt?.getTime() ?? 0;
+      if (pubB !== pubA) {
+        return pubB - pubA;
+      }
+      return a.slug.localeCompare(b.slug, 'ru');
+    });
+
+    const pageRows = sorted.slice((page - 1) * pageSize, page * pageSize);
+
     return {
-      items: rows.map((row) => this.toListItem(row)),
+      items: pageRows.map((row) =>
+        this.toListItem(row, voteCounts.get(row.id) ?? 0),
+      ),
       page,
       pageSize,
       total,
     };
   }
 
-  async findBySlug(slug: string) {
+  async findBySlug(slug: string, sessionToken?: string) {
     await this.assertCatalogEnabled();
 
     const idea = await this.prisma.idea.findUnique({
@@ -92,7 +115,13 @@ export class PublicIdeasService {
       throw new NotFoundException('Initiative not found');
     }
 
-    return this.toDetail(idea);
+    const voteCount = await this.publicVote.countValidVotes(idea.id);
+    const session = await this.publicAuth.tryGetSession(sessionToken);
+    const hasVoted = session
+      ? await this.publicVote.hasUserVoted(idea.id, session.user.id)
+      : undefined;
+
+    return this.toDetail(idea, voteCount, hasVoted);
   }
 
   async listMapMarkers() {
@@ -144,7 +173,7 @@ export class PublicIdeasService {
     }
   }
 
-  private toListItem(row: IdeaListRow) {
+  private toListItem(row: IdeaListRow, voteCount: number) {
     return {
       slug: row.slug,
       title: row.title,
@@ -152,14 +181,18 @@ export class PublicIdeasService {
       authorName: this.authorName(row.expertName),
       publishedAt: row.publishedAt,
       territory: this.listTerritory(row),
-      voteCount: RELEASE1_VOTE_COUNT,
+      voteCount,
       thumbnailUrl: row.image
         ? `/api/public/ideas/${row.slug}/image/thumbnail?v=${row.image.id}`
         : null,
     };
   }
 
-  private toDetail(idea: IdeaDetailRow) {
+  private toDetail(
+    idea: IdeaDetailRow,
+    voteCount: number,
+    hasVoted?: boolean,
+  ) {
     return {
       slug: idea.slug,
       title: idea.title,
@@ -170,7 +203,8 @@ export class PublicIdeasService {
       latitude: idea.latitude,
       longitude: idea.longitude,
       publishedAt: idea.publishedAt,
-      voteCount: RELEASE1_VOTE_COUNT,
+      voteCount,
+      ...(hasVoted !== undefined ? { hasVoted } : {}),
       image: idea.image
         ? {
             url: `/api/public/ideas/${idea.slug}/image/optimized?v=${idea.image.id}`,
@@ -183,7 +217,9 @@ export class PublicIdeasService {
     return expertName?.trim() || '—';
   }
 
-  private districtLabel(row: Pick<IdeaListRow, 'territoryType' | 'districts'>): string | null {
+  private districtLabel(
+    row: Pick<IdeaListRow, 'territoryType' | 'districts'>,
+  ): string | null {
     if (row.territoryType === TerritoryType.CITYWIDE) {
       return 'Весь город';
     }

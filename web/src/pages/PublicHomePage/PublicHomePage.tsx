@@ -72,7 +72,11 @@ export function PublicHomePage() {
             <SubmitCta className={`${styles.heroCta} homeMotionFadeUpDelay2`} />
             <p className={`${styles.ideasCount} homeMotionFadeUpDelay3`}>
               Количество собранных идей:{' '}
-              <span className={styles.ideasCountValue}>—</span>
+              <span className={styles.ideasCountValue}>
+                {configQuery.isSuccess
+                  ? configQuery.data.collectedIdeasCount
+                  : '—'}
+              </span>
             </p>
           </div>
           <div className={`${styles.heroVisual} homeMotionSlideIn`}>

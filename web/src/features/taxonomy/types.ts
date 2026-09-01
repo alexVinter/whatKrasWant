@@ -21,4 +21,5 @@ export interface PublicConfig {
     VOTING: boolean;
     RESULTS: boolean;
   };
+  collectedIdeasCount: number;
 }

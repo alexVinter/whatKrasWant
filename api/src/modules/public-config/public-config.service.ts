@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { IdeaSourceType } from '@prisma/client';
 import { PrismaService } from '../../database/prisma.service';
 
 export interface PublicDistrict {
@@ -20,6 +21,7 @@ export type PublicFeatures = Record<FeatureFlagKey, boolean>;
 export interface PublicConfig {
   districts: PublicDistrict[];
   features: PublicFeatures;
+  collectedIdeasCount: number;
 }
 
 @Injectable()
@@ -27,13 +29,19 @@ export class PublicConfigService {
   constructor(private readonly prisma: PrismaService) {}
 
   async getConfig(): Promise<PublicConfig> {
-    const [districts, settings] = await Promise.all([
+    const [districts, settings, collectedIdeasCount] = await Promise.all([
       this.prisma.district.findMany({
         where: { isActive: true },
         orderBy: [{ sortOrder: 'asc' }, { name: 'asc' }],
       }),
       this.prisma.systemSetting.findMany({
         where: { key: { in: [...PUBLIC_FEATURE_FLAGS] } },
+      }),
+      this.prisma.idea.count({
+        where: {
+          sourceType: IdeaSourceType.RESIDENT,
+          submittedAt: { not: null },
+        },
       }),
     ]);
 
@@ -47,6 +55,7 @@ export class PublicConfigService {
     return {
       districts: districts.map((d) => ({ id: d.id, name: d.name })),
       features,
+      collectedIdeasCount,
     };
   }
 }

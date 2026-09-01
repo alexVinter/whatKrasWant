@@ -1,5 +1,5 @@
-// «Чего хочет Красноярск?» — схема БД (Релиз 1 core + новости + Релиз 2 auth).
-// Vote, ConsentAcceptance, LegalDocument добавляются на следующих этапах.
+// «Чего хочет Красноярск?» — схема БД (Релиз 1 core + новости + Релиз 2 auth/votes).
+// ConsentAcceptance, LegalDocument добавляются на следующих этапах.
 
 generator client {
   provider = "prisma-client-js"
@@ -81,6 +81,7 @@ model User {
 
   sessions PublicSession[]
   ideas    Idea[]
+  votes    Vote[]
 
   @@map("users")
 }
@@ -154,8 +155,31 @@ model Idea {
   districts IdeaDistrict[]
   image     IdeaImage?
   revisions IdeaRevision[]
+  votes     Vote[]
 
   @@map("ideas")
+}
+
+model Vote {
+  id              String    @id @default(uuid())
+  ideaId          String    @map("idea_id")
+  userId          String    @map("user_id")
+  ipHash          String?   @map("ip_hash")
+  userAgentHash   String?   @map("user_agent_hash")
+  isExcluded      Boolean   @default(false) @map("is_excluded")
+  excludedAt      DateTime? @map("excluded_at")
+  exclusionReason String?   @map("exclusion_reason")
+  createdAt       DateTime  @default(now()) @map("created_at")
+
+  idea Idea @relation(fields: [ideaId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([ideaId, userId])
+  @@index([ideaId])
+  @@index([userId])
+  @@index([ipHash])
+  @@index([isExcluded])
+  @@map("votes")
 }
 
 model IdeaDistrict {

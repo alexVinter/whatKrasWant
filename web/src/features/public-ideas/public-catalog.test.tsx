@@ -29,6 +29,7 @@ const defaultConfig = (overrides?: Partial<PublicConfig['features']>): PublicCon
     RESULTS: false,
     ...overrides,
   },
+  collectedIdeasCount: 0,
 });
 
 const publicNews: PublicNewsListItem[] = [
