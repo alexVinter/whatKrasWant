@@ -23,6 +23,7 @@ import { PublicIdeasController } from './public-ideas.controller';
 import { PublicMapController } from './public-map.controller';
 import { PublicIdeasService } from './public-ideas.service';
 import { PublicSubmissionService } from './public-submission.service';
+import { PublicVoteService } from './public-vote.service';
 import { PublicAuthService } from '../public-auth/public-auth.service';
 import { PublicAuthGuard } from '../public-auth/guards/public-auth.guard';
 import { VkIdClient } from '../public-auth/vk-id.client';
@@ -207,6 +208,17 @@ class FakePrisma {
       ),
   };
 
+  vote = {
+    count: (): Promise<number> => Promise.resolve(0),
+    groupBy: (): Promise<{ ideaId: string; _count: { _all: number } }[]> =>
+      Promise.resolve([]),
+    findUnique: (): Promise<null> => Promise.resolve(null),
+  };
+
+  publicSession = {
+    findUnique: (): Promise<null> => Promise.resolve(null),
+  };
+
   private selectIdea(row: Idea, select: Record<string, any>): Record<string, unknown> {
     const result: Record<string, unknown> = {};
     for (const key of Object.keys(select)) {
@@ -302,6 +314,7 @@ describe('PublicIdeasController (e2e)', () => {
       providers: [
         PublicIdeasService,
         PublicSubmissionService,
+        PublicVoteService,
         PublicAuthService,
         PublicAuthGuard,
         VkIdClient,

@@ -48,6 +48,7 @@ class FakePrisma {
   districts: District[] = [];
   ideas: Idea[] = [];
   ideaDistricts: IdeaDistrictRow[] = [];
+  votes: { ideaId: string; isExcluded: boolean }[] = [];
 
   adminSession = {
     findUnique: (args: {
@@ -119,6 +120,7 @@ class FakePrisma {
       );
       return Promise.resolve(
         rows.map((idea) => ({
+          id: idea.id,
           title: idea.title,
           sourceType: idea.sourceType,
           expertName: idea.expertName,
@@ -141,6 +143,11 @@ class FakePrisma {
         })),
       );
     },
+  };
+
+  vote = {
+    groupBy: (args: { by: string[]; _count: { _all: true } }) =>
+      this.groupBy(this.votes, args.by),
   };
 
   ideaDistrict = {
@@ -393,21 +400,23 @@ describe('StatisticsController (e2e)', () => {
     expect(authorText).toContain('Эксперт');
   });
 
-  it('keeps Votes and Top-20 informational without fake business rows', async () => {
+  it('includes vote aggregates on the votes sheet without sensitive data', async () => {
     const { workbook } = await downloadWorkbook();
-    const votes = JSON.stringify(
-      workbook.getWorksheet(XLSX_SHEETS.VOTES)!.getSheetValues(),
-    );
+    const votesSheet = workbook.getWorksheet(XLSX_SHEETS.VOTES)!;
+    const votesText = JSON.stringify(votesSheet.getSheetValues());
+    expect(votesText).toContain('Инициатива');
+    expect(votesText).toContain('TEST E10 DRAFT');
+    expect(votesText).not.toContain('ip_hash');
+    expect(votesText).not.toContain('user-');
+
     const top20 = JSON.stringify(
       workbook.getWorksheet(XLSX_SHEETS.TOP20)!.getSheetValues(),
     );
-    expect(votes).toContain('Данные о голосах появятся в Релизе 2.');
     expect(top20).toContain(
       'Данные топ-20 появятся на соответствующем этапе.',
     );
-    expect(votes).not.toContain('TEST E10 DRAFT');
     expect(top20).not.toContain('TEST E10 DRAFT');
-    expect(votes.toLowerCase()).not.toContain('vk');
+    expect(votesText.toLowerCase()).not.toContain('vk');
   });
 
   it('writes real aggregates into the statistics sheet', async () => {

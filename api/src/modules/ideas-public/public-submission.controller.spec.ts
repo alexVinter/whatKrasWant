@@ -33,6 +33,7 @@ import { PublicIdeasController } from './public-ideas.controller';
 import { PublicMapController } from './public-map.controller';
 import { PublicIdeasService } from './public-ideas.service';
 import { PublicSubmissionService } from './public-submission.service';
+import { PublicVoteService } from './public-vote.service';
 
 const RAW_TOKEN = 'public-session-token';
 const TOPIC_ID = '550e8400-e29b-41d4-a716-446655440000';
@@ -273,6 +274,13 @@ class FakePrisma {
     },
   };
 
+  vote = {
+    count: (): Promise<number> => Promise.resolve(0),
+    groupBy: (): Promise<{ ideaId: string; _count: { _all: number } }[]> =>
+      Promise.resolve([]),
+    findUnique: (): Promise<null> => Promise.resolve(null),
+  };
+
   seedTopic(): IdeaTopic {
     const now = new Date();
     const topic: IdeaTopic = {
@@ -357,6 +365,7 @@ describe('Public submission (e2e)', () => {
       providers: [
         PublicIdeasService,
         PublicSubmissionService,
+        PublicVoteService,
         PublicAuthService,
         PublicAuthGuard,
         SettingsService,

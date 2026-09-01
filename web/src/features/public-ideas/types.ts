@@ -27,6 +27,7 @@ export interface PublicIdeaDetail {
   longitude: number | null;
   publishedAt: string | null;
   voteCount: number;
+  hasVoted?: boolean;
   image: { url: string } | null;
 }
 

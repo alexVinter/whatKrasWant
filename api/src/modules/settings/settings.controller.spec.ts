@@ -140,6 +140,10 @@ class FakePrisma {
   district = {
     findMany: (): Promise<never[]> => Promise.resolve([]),
   };
+
+  idea = {
+    count: (): Promise<number> => Promise.resolve(0),
+  };
 }
 
 describe('SettingsController (e2e)', () => {

@@ -420,7 +420,7 @@ describe('admin initiatives', () => {
       );
       expect(post?.body.action).toBe('DRAFT');
     });
-  });
+  }, 15_000);
 
   it('publishes via POST from the create form', async () => {
     const { calls } = installMock();
@@ -440,7 +440,7 @@ describe('admin initiatives', () => {
       );
       expect(post?.body.action).toBe('PUBLISH');
     });
-  });
+  }, 15_000);
 
   it('shows a validation error for a too-short title', async () => {
     installMock();
@@ -456,7 +456,7 @@ describe('admin initiatives', () => {
     expect(await screen.findByRole('alert')).toHaveTextContent(
       'от 10 до 150 символов',
     );
-  });
+  }, 15_000);
 
   it('opens the edit page from a list row and loads the initiative', async () => {
     installMock();

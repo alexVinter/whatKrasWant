@@ -1,6 +1,7 @@
 import { Link, useParams } from 'react-router-dom';
 import { usePublicConfig } from '../../../features/public-config/queries';
 import { usePublicIdeaDetail } from '../../../features/public-ideas/queries';
+import { useVoteIdea } from '../../../features/public-vote/useVoteIdea';
 import { IdeasMap } from '../../../shared/map/IdeasMap';
 import styles from './PublicInitiativeDetailPage.module.css';
 
@@ -8,9 +9,10 @@ export function PublicInitiativeDetailPage() {
   const { slug = '' } = useParams();
   const configQuery = usePublicConfig();
   const catalogEnabled = configQuery.data?.features.PUBLIC_CATALOG ?? false;
-  const votingEnabled = configQuery.data?.features.VOTING ?? false;
   const detailQuery = usePublicIdeaDetail(slug, catalogEnabled);
   const idea = detailQuery.data;
+  const { support, votingEnabled, pending, localHasVoted } = useVoteIdea(slug);
+  const hasVoted = Boolean(idea?.hasVoted || localHasVoted);
 
   if (configQuery.isLoading) {
     return (
@@ -71,6 +73,9 @@ export function PublicInitiativeDetailPage() {
         ]
       : [];
 
+  const supportLabel = hasVoted ? 'Вы поддержали' : 'Поддержать';
+  const supportDisabled = !votingEnabled || hasVoted || pending;
+
   return (
     <article className={styles.page}>
       <Link to="/initiatives" className={styles.back}>
@@ -109,20 +114,17 @@ export function PublicInitiativeDetailPage() {
 
           <div className={styles.actions}>
             <p className={styles.votes}>Голосов: {idea.voteCount}</p>
-            {votingEnabled ? (
-              <button type="button" className={styles.support}>
-                Поддержать
-              </button>
-            ) : (
-              <button
-                type="button"
-                className={styles.support}
-                disabled
-                aria-disabled="true"
-              >
-                Поддержать
-              </button>
-            )}
+            <button
+              type="button"
+              className={styles.support}
+              disabled={supportDisabled}
+              aria-disabled={supportDisabled}
+              onClick={() => {
+                void support();
+              }}
+            >
+              {pending ? 'Поддержка…' : supportLabel}
+            </button>
           </div>
 
           <div className={styles.description}>{idea.description}</div>

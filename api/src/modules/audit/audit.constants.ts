@@ -20,6 +20,8 @@ export const AUDIT_ACTIONS = {
   NEWS_IMAGE_ADDED: 'NEWS_IMAGE_ADDED',
   NEWS_IMAGE_REPLACED: 'NEWS_IMAGE_REPLACED',
   NEWS_IMAGE_REMOVED: 'NEWS_IMAGE_REMOVED',
+  VOTE_EXCLUDED: 'VOTE_EXCLUDED',
+  VOTE_RESTORED: 'VOTE_RESTORED',
 } as const;
 
 export type AuditAction = (typeof AUDIT_ACTIONS)[keyof typeof AUDIT_ACTIONS];
@@ -30,6 +32,7 @@ export const AUDIT_ENTITIES = {
   DISTRICT: 'DISTRICT',
   SETTINGS: 'SETTINGS',
   NEWS: 'NEWS',
+  VOTE: 'VOTE',
 } as const;
 
 export const SETTINGS_ENTITY_ID = 'publicity';

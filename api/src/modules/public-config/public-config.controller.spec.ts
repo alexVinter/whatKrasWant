@@ -51,6 +51,23 @@ class FakePrisma {
       return Promise.resolve(filtered);
     },
   };
+
+  idea = {
+    count: (args: {
+      where?: { sourceType?: string; submittedAt?: { not: null } };
+    }): Promise<number> => {
+      let rows = [...this.ideas];
+      if (args.where?.sourceType) {
+        rows = rows.filter((row) => row.sourceType === args.where!.sourceType);
+      }
+      if (args.where?.submittedAt?.not === null) {
+        rows = rows.filter((row) => row.submittedAt !== null);
+      }
+      return Promise.resolve(rows.length);
+    },
+  };
+
+  ideas: import('@prisma/client').Idea[] = [];
 }
 
 describe('PublicConfigController (e2e)', () => {
@@ -120,5 +137,33 @@ describe('PublicConfigController (e2e)', () => {
       VOTING: false,
       RESULTS: false,
     });
+  });
+
+  it('returns collectedIdeasCount for resident submitted ideas', async () => {
+    prisma.ideas.push({
+      id: 'idea-1',
+      publicNumber: 1,
+      slug: 'resident-a',
+      sourceType: 'RESIDENT',
+      expertName: 'Иван',
+      expertOrg: null,
+      title: 'Resident idea',
+      description: 'Description',
+      topicId: null,
+      userId: 'user-1',
+      territoryType: 'CITYWIDE',
+      address: null,
+      latitude: null,
+      longitude: null,
+      status: 'MODERATION',
+      isTop20: false,
+      submittedAt: new Date(),
+      publishedAt: null,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    });
+
+    const res = await request(server()).get('/public/config').expect(200);
+    expect(res.body.collectedIdeasCount).toBe(1);
   });
 });

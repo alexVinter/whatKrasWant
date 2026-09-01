@@ -16,10 +16,12 @@ import {
 import { FileInterceptor } from '@nestjs/platform-express';
 import type { Response } from 'express';
 import { PublicAuthGuard } from '../public-auth/guards/public-auth.guard';
+import { PUBLIC_SESSION_COOKIE } from '../public-auth/public-auth.constants';
 import type { PublicRequest } from '../public-auth/public-auth.types';
 import { MulterExceptionFilter } from '../../common/multer-exception.filter';
 import { PublicIdeasService } from './public-ideas.service';
 import { PublicSubmissionService } from './public-submission.service';
+import { PublicVoteService } from './public-vote.service';
 import { ListPublicIdeasDto } from './dto/list-public-ideas.dto';
 import { SubmitPublicIdeaDto } from './dto/submit-public-idea.dto';
 
@@ -30,6 +32,7 @@ export class PublicIdeasController {
   constructor(
     private readonly publicIdeasService: PublicIdeasService,
     private readonly publicSubmissionService: PublicSubmissionService,
+    private readonly publicVoteService: PublicVoteService,
   ) {}
 
   @Get()
@@ -52,6 +55,17 @@ export class PublicIdeasController {
     return this.publicSubmissionService.submit(dto, file, req.publicUser!);
   }
 
+  @Post(':slug/vote')
+  @HttpCode(201)
+  @UseGuards(PublicAuthGuard)
+  vote(@Param('slug') slug: string, @Req() req: PublicRequest) {
+    return this.publicVoteService.castVote(slug, req.publicUser!, {
+      forwardedFor: req.headers['x-forwarded-for'],
+      remoteAddress: req.socket?.remoteAddress,
+      userAgent: req.headers['user-agent'],
+    });
+  }
+
   @Get(':slug/image/:variant')
   async getImage(
     @Param('slug') slug: string,
@@ -68,7 +82,10 @@ export class PublicIdeasController {
   }
 
   @Get(':slug')
-  findOne(@Param('slug') slug: string) {
-    return this.publicIdeasService.findBySlug(slug);
+  findOne(@Param('slug') slug: string, @Req() req: PublicRequest) {
+    const sessionToken = req.cookies?.[PUBLIC_SESSION_COOKIE] as
+      | string
+      | undefined;
+    return this.publicIdeasService.findBySlug(slug, sessionToken);
   }
 }
