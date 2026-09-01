@@ -2,8 +2,9 @@ import partnerAdministration from '../../shared/brand/partners/administration.pn
 import partnerArtstyle from '../../shared/brand/partners/artstyle.svg';
 import partnerDelovayaRossiya from '../../shared/brand/partners/delovaya-rossiya.svg';
 import partnerEnisib from '../../shared/brand/partners/enisib.png';
+import partnerGorodDlyaPeshekhodov from '../../shared/brand/partners/gorod_dlya_peshekhodov.svg';
 import partnerMoyKrasnoyarsk from '../../shared/brand/partners/moy-krasnoyarsk.png';
-import partnerProektdevelopment from '../../shared/brand/partners/proektdevelopment.png';
+import partnerProjectdevelopment from '../../shared/brand/partners/projectdevelopment.svg';
 
 export const FOOTER_SUPPORT_PREFIX = 'Проект реализуется при поддержке';
 
@@ -41,9 +42,15 @@ export const FOOTER_PARTNERS: FooterPartner[] = [
   },
   { id: 'artstyle', name: 'ArtStyle', src: partnerArtstyle },
   {
+    id: 'gorod-dlya-peshekhodov',
+    name: 'Город для пешеходов',
+    src: partnerGorodDlyaPeshekhodov,
+  },
+  {
     id: 'project-development',
     name: 'Проект Девелопмент',
-    src: partnerProektdevelopment,
+    src: partnerProjectdevelopment,
+    theme: 'dark',
   },
   {
     id: 'yenisei-siberia',
