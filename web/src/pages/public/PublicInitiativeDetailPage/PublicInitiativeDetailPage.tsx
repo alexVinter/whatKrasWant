@@ -128,13 +128,6 @@ export function PublicInitiativeDetailPage() {
           </div>
 
           <div className={styles.description}>{idea.description}</div>
-
-          {idea.territory && (
-            <section className={styles.locationBlock} aria-label="Место на карте">
-              <h2 className={styles.locationTitle}>Место на карте</h2>
-              <p className={styles.locationText}>{idea.territory}</p>
-            </section>
-          )}
         </div>
       </div>
     </article>
