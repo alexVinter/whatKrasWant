@@ -7,6 +7,7 @@ import { ConfigService } from '@nestjs/config';
 import { createHash, randomBytes } from 'node:crypto';
 import type { PublicSession, User } from '@prisma/client';
 import { PrismaService } from '../../database/prisma.service';
+import { normalizePersonName } from '../../common/name/normalize-person-name.util';
 import { DEFAULT_PUBLIC_SESSION_TTL_HOURS } from './public-auth.constants';
 import type { SafePublicUser } from './public-auth.types';
 import { VkIdClient } from './vk-id.client';
@@ -50,19 +51,21 @@ export class PublicAuthService {
 
   async loginWithVkAccessToken(accessToken: string): Promise<PublicLoginResult> {
     const profile = await this.vkIdClient.fetchUserProfile(accessToken);
+    const firstName = normalizePersonName(profile.firstName);
+    const lastName = normalizePersonName(profile.lastName);
 
     const user = await this.prisma.user.upsert({
       where: { vkId: profile.vkId },
       create: {
         vkId: profile.vkId,
-        firstName: profile.firstName,
-        lastName: profile.lastName,
+        firstName,
+        lastName,
         avatarUrl: profile.avatarUrl,
         lastLoginAt: new Date(),
       },
       update: {
-        firstName: profile.firstName,
-        lastName: profile.lastName,
+        firstName,
+        lastName,
         avatarUrl: profile.avatarUrl,
         lastLoginAt: new Date(),
       },
