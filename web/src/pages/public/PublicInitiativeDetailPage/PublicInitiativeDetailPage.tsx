@@ -112,6 +112,8 @@ export function PublicInitiativeDetailPage() {
           <p className={styles.author}>Автор: {idea.authorName}</p>
           <h1 className={styles.title}>{idea.title}</h1>
 
+          <div className={styles.description}>{idea.description}</div>
+
           <div className={styles.actions}>
             <p className={styles.votes}>Голосов: {idea.voteCount}</p>
             <button
@@ -126,8 +128,6 @@ export function PublicInitiativeDetailPage() {
               {pending ? 'Поддержка…' : supportLabel}
             </button>
           </div>
-
-          <div className={styles.description}>{idea.description}</div>
         </div>
       </div>
     </article>

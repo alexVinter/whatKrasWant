@@ -79,11 +79,20 @@
   color: var(--color-text);
 }
 
+.description {
+  margin: 0;
+  font-size: 16px;
+  line-height: 1.65;
+  white-space: pre-wrap;
+  color: var(--color-text);
+}
+
 .actions {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   gap: 16px;
+  margin-top: 8px;
 }
 
 .votes {
@@ -109,17 +118,27 @@
   cursor: not-allowed;
 }
 
-.description {
-  margin-top: 8px;
-  font-size: 16px;
-  line-height: 1.6;
-  white-space: pre-wrap;
-}
-
 @media (min-width: 900px) {
   .layout {
     grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr);
     gap: 32px;
     align-items: start;
+  }
+
+  .contentColumn {
+    gap: 14px;
+  }
+
+  .title {
+    margin-bottom: 2px;
+  }
+
+  .description {
+    padding-top: 6px;
+    padding-bottom: 2px;
+  }
+
+  .actions {
+    margin-top: 16px;
   }
 }
