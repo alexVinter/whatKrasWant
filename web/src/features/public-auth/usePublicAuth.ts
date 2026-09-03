@@ -1,4 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { PUBLIC_IDEAS_KEY } from '../public-ideas/queries';
 import { getPublicSession, loginWithVkAccessToken, logoutPublic } from './api';
 import { obtainVkAccessToken } from './vkSdk';
 import type { PublicSessionState } from './types';
@@ -28,6 +29,7 @@ export function usePublicAuthActions() {
         user: response.user,
       };
       queryClient.setQueryData(PUBLIC_SESSION_QUERY_KEY, nextSession);
+      void queryClient.invalidateQueries({ queryKey: PUBLIC_IDEAS_KEY });
     },
   });
 
