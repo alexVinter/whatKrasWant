@@ -54,14 +54,11 @@ class FakePrisma {
 
   idea = {
     count: (args: {
-      where?: { sourceType?: string; submittedAt?: { not: null } };
+      where?: { status?: string };
     }): Promise<number> => {
       let rows = [...this.ideas];
-      if (args.where?.sourceType) {
-        rows = rows.filter((row) => row.sourceType === args.where!.sourceType);
-      }
-      if (args.where?.submittedAt?.not === null) {
-        rows = rows.filter((row) => row.submittedAt !== null);
+      if (args.where?.status) {
+        rows = rows.filter((row) => row.status === args.where!.status);
       }
       return Promise.resolve(rows.length);
     },
@@ -139,31 +136,74 @@ describe('PublicConfigController (e2e)', () => {
     });
   });
 
-  it('returns collectedIdeasCount for resident submitted ideas', async () => {
-    prisma.ideas.push({
-      id: 'idea-1',
-      publicNumber: 1,
-      slug: 'resident-a',
-      sourceType: 'RESIDENT',
-      expertName: 'Иван',
+  it('returns collectedIdeasCount for published initiatives only', async () => {
+    const now = new Date();
+    const base = {
       expertOrg: null,
-      title: 'Resident idea',
-      description: 'Description',
+      title: 'Idea',
+      description: 'Description long enough for validation',
       topicId: null,
-      userId: 'user-1',
-      territoryType: 'CITYWIDE',
+      territoryType: 'CITYWIDE' as const,
       address: null,
       latitude: null,
       longitude: null,
-      status: 'MODERATION',
       isTop20: false,
-      submittedAt: new Date(),
-      publishedAt: null,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    });
+      createdAt: now,
+      updatedAt: now,
+    };
+
+    prisma.ideas.push(
+      {
+        id: 'idea-1',
+        publicNumber: 1,
+        slug: 'resident-published',
+        sourceType: 'RESIDENT',
+        expertName: 'Иван',
+        userId: 'user-1',
+        status: 'PUBLISHED',
+        submittedAt: now,
+        publishedAt: now,
+        ...base,
+      },
+      {
+        id: 'idea-2',
+        publicNumber: 2,
+        slug: 'expert-published',
+        sourceType: 'EXPERT',
+        expertName: 'Эксперт',
+        userId: null,
+        status: 'PUBLISHED',
+        submittedAt: null,
+        publishedAt: now,
+        ...base,
+      },
+      {
+        id: 'idea-3',
+        publicNumber: 3,
+        slug: 'resident-moderation',
+        sourceType: 'RESIDENT',
+        expertName: 'Пётр',
+        userId: 'user-2',
+        status: 'MODERATION',
+        submittedAt: now,
+        publishedAt: null,
+        ...base,
+      },
+      {
+        id: 'idea-4',
+        publicNumber: 4,
+        slug: 'expert-draft',
+        sourceType: 'EXPERT',
+        expertName: 'Черновик',
+        userId: null,
+        status: 'DRAFT',
+        submittedAt: null,
+        publishedAt: null,
+        ...base,
+      },
+    );
 
     const res = await request(server()).get('/public/config').expect(200);
-    expect(res.body.collectedIdeasCount).toBe(1);
+    expect(res.body.collectedIdeasCount).toBe(2);
   });
 });

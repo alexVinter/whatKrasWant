@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { IdeaSourceType } from '@prisma/client';
+import { IdeaStatus } from '@prisma/client';
 import { PrismaService } from '../../database/prisma.service';
 
 export interface PublicDistrict {
@@ -38,10 +38,7 @@ export class PublicConfigService {
         where: { key: { in: [...PUBLIC_FEATURE_FLAGS] } },
       }),
       this.prisma.idea.count({
-        where: {
-          sourceType: IdeaSourceType.RESIDENT,
-          submittedAt: { not: null },
-        },
+        where: { status: IdeaStatus.PUBLISHED },
       }),
     ]);
 
