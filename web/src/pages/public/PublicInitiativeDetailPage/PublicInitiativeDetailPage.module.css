@@ -68,12 +68,6 @@
   border-radius: var(--radius-md);
 }
 
-.location {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
 .territoryTag {
   align-self: flex-start;
   margin: 0;
@@ -82,13 +76,6 @@
   font-size: 14px;
   color: var(--color-text);
   background: #f3ece2;
-}
-
-.address {
-  margin: 0;
-  font-size: 15px;
-  line-height: 1.5;
-  color: var(--color-text-muted);
 }
 
 .author {

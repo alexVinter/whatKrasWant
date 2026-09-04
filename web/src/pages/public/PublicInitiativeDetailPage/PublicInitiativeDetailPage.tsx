@@ -117,15 +117,8 @@ export function PublicInitiativeDetailPage() {
         )}
 
         <div className={styles.infoSection}>
-          {(idea.territory || idea.address) && (
-            <div className={styles.location}>
-              {idea.territory && (
-                <p className={styles.territoryTag}>{idea.territory}</p>
-              )}
-              {idea.address && (
-                <p className={styles.address}>{idea.address}</p>
-              )}
-            </div>
+          {idea.territory && (
+            <p className={styles.territoryTag}>{idea.territory}</p>
           )}
 
           <p className={styles.author}>Автор: {idea.authorName}</p>
