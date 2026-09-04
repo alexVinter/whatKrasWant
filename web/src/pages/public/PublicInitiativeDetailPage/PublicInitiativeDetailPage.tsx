@@ -73,8 +73,17 @@ export function PublicInitiativeDetailPage() {
         ]
       : [];
 
+  const hasMap = mapMarkers.length > 0;
+  const hasImage = Boolean(idea.image?.url);
+  const showMediaRow = hasImage || hasMap;
+
   const supportLabel = hasVoted ? 'Вы поддержали' : 'Поддержать';
   const supportDisabled = !votingEnabled || hasVoted || pending;
+
+  const mediaRowClassName = [
+    styles.mediaRow,
+    hasImage && hasMap ? styles.mediaRowSplit : styles.mediaRowSingle,
+  ].join(' ');
 
   return (
     <article className={styles.page}>
@@ -82,33 +91,43 @@ export function PublicInitiativeDetailPage() {
         Назад
       </Link>
 
-      <div className={styles.layout}>
-        <div className={styles.mediaColumn}>
-          {idea.image?.url ? (
-            <img
-              className={styles.heroImage}
-              src={idea.image.url}
-              alt={idea.title}
-            />
-          ) : (
-            <div className={styles.heroFallback} aria-hidden="true" />
-          )}
+      <div className={styles.stack}>
+        {showMediaRow && (
+          <div className={mediaRowClassName}>
+            {hasImage && idea.image && (
+              <div className={styles.imageFrame}>
+                <img
+                  className={styles.heroImage}
+                  src={idea.image.url}
+                  alt={idea.title}
+                />
+              </div>
+            )}
 
-          {mapMarkers.length > 0 && (
-            <div className={styles.inlineMapWrap}>
-              <IdeasMap
-                markers={mapMarkers}
-                showPopups={false}
-                height={220}
-              />
+            {hasMap && (
+              <div className={styles.mapCard}>
+                <IdeasMap
+                  markers={mapMarkers}
+                  showPopups={false}
+                  height="100%"
+                />
+              </div>
+            )}
+          </div>
+        )}
+
+        <div className={styles.infoSection}>
+          {(idea.territory || idea.address) && (
+            <div className={styles.location}>
+              {idea.territory && (
+                <p className={styles.territoryTag}>{idea.territory}</p>
+              )}
+              {idea.address && (
+                <p className={styles.address}>{idea.address}</p>
+              )}
             </div>
           )}
-        </div>
 
-        <div className={styles.contentColumn}>
-          {idea.territory && (
-            <p className={styles.territoryTag}>{idea.territory}</p>
-          )}
           <p className={styles.author}>Автор: {idea.authorName}</p>
           <h1 className={styles.title}>{idea.title}</h1>
 
